@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
- * Copyright [2020-2023] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
+ * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
  *
  * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
  * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
@@ -42,7 +42,7 @@
 
 /* Register definitions, common services and error codes. */
 #include "bsp_api.h"
-#include "r_flash_api.h"
+#include "r_qspi.h"
 #include "lfs.h"
 
 /* Common macro for SSP header files. There is also a corresponding SSP_FOOTER macro at the end of this file. */
