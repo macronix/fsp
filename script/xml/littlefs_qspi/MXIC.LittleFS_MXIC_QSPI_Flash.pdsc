@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<package xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="1.7.2" xs:noNamespaceSchemaLocation="PACK.xsd">
+  <vendor>MXIC</vendor>
+  <name>LittleFS_MXIC_QSPI_Flash</name>
+  <description/>
+  <url/>
+  <supportContact/>
+  <license/>
+  <releases>
+    <release version="1.0.1+fsp.4.3.0">1.0.1+fsp.4.3.0</release>
+  </releases>
+  <components>
+    <component Cclass="Middleware" Cgroup="all" Csub="littlefs_mxic_qspi_flash" Cvendor="MXIC" Cversion="1.0.1+fsp.4.3.0" condition="">
+      <description/>
+      <files>
+        <file category="include" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand"/>
+        <file category="source" condition="" name="ra/fsp/inc/api/rm_littlefs_api.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/instances/rm_littlefs_mxic_qspi_flash.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/rm_littlefs_mxic_qspi_flash.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/bch.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/bch.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/bitops.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/mx_define.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/mxic_hc.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/mxic_hc.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nand_bch.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nand_bch.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/inc/nftl.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/inc/nftl_conf.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/inc/nftl_partition.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/inc/nftl_util.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/nftl.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/nftl_partition.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/nftl/nftl_util.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/randomizer.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/randomizer.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_app.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_app.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_cmd.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_cmd.h" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_ops.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_qspi_flash/spi_nand/spi_nand_ops.h" version="1.0.1+fsp.4.3.0"/>
+      </files>
+    </component>
+  </components>
+</package>

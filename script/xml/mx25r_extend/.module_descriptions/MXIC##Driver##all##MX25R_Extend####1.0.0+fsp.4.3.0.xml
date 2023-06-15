@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<raModuleDescription>
+ 
+  <module config="config.driver.mx25r_extend" display="Driver|Storage|MX25R Extend" id="module.driver.mx25r_extend" version="1">
+	<constraint display="Unique name required for each instance">
+		"${interface.driver.mx25r_extend.${module.driver.mx25r_extend.name}}" === "1"
+    </constraint>
+	<requires id="module.driver.mx25r_extend.requires.qspi" interface="interface.driver.qspi" visible="true" display="Requires QSPI peripheral" />
+	<provides interface="interface.middleware.power_management" />
+	<provides interface="interface.driver.mx25r_extend.${module.driver.mx25r_extend.name}" />
+	<property default="g_mx25r${_instance}" display="Name" id="module.driver.mx25r_extend.name" description="Module name.">
+        <constraint display="Name must be a valid C symbol">testSymbol("${module.driver.mx25r_extend.name}")</constraint>
+    </property>
+	
+
+	
+	<header>
+/*****************MX25R Extend Defines and declarations****************************/
+    extern const mx25r_extend_instance_t ${module.driver.mx25r_extend.name};
+/******************************************************************************/
+
+	
+    </header>
+	<includes>
+	#include &quot;r_mx25r_extend_api.h&quot;
+	#include &quot;r_mx25r_extend.h&quot;
+	</includes>
+	
+	<declarations>
+
+mx25r_extend_instance_ctrl_t ${module.driver.mx25r_extend.name}_ctrl;
+
+const mx25r_extend_flash_cfg_t ${module.driver.mx25r_extend.name}_ext_cfg =
+{
+    .p_flash = &amp;${module.driver.mx25r_extend.requires.qspi::module.driver.qspi.name},
+};
+
+const mx25r_extend_cfg_t ${module.driver.mx25r_extend.name}_cfg =
+{
+    .p_extend     = &amp;${module.driver.mx25r_extend.name}_ext_cfg,
+};
+
+const mx25r_extend_instance_t ${module.driver.mx25r_extend.name} =
+{
+    .p_ctrl        = &amp;${module.driver.mx25r_extend.name}_ctrl,
+    .p_cfg         = &amp;${module.driver.mx25r_extend.name}_cfg,
+    .p_api         =  &amp;g_mx25r_extend_on_QSPI,
+};
+	
+	</declarations>
+	
+  </module>
+  
+  
+  
+  
+</raModuleDescription>

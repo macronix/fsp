@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<package xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="1.7.2" xs:noNamespaceSchemaLocation="PACK.xsd">
+  <vendor>Renesas</vendor>
+  <name>Flash_PowerManage</name>
+  <description/>
+  <url/>
+  <supportContact/>
+  <license/>
+  <releases>
+    <release version="1.0.0+fsp.4.3.0">1.0.0+fsp.4.3.0</release>
+  </releases>
+  <components>
+    <component Cclass="Middleware" Cgroup="all" Csub="Flash_PowerManage" Cvendor="Renesas" Cversion="1.0.0+fsp.4.3.0" condition="">
+      <description/>
+      <files>
+        <file category="source" condition="" name="ra/fsp/inc/instances/r_flash_powermanage.h" version="1.0.0+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/src/r_flash_powermanage/r_flash_powermanage.c" version="1.0.0+fsp.4.3.0"/>
+      </files>
+    </component>
+  </components>
+</package>

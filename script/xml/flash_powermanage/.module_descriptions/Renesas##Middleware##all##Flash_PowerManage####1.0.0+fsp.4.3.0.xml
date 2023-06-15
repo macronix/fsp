@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<raModuleDescription>
+  <module config="config.middleware.powermanage" display="Middleware|Storage|Flash Power Manage" id="module.middleware.powermanage" version="1">
+	<constraint display="Unique name required for each instance">
+		"${interface.middleware.powermanage.${module.middleware.powermanage.name}}" === "1"
+    </constraint>
+	<requires id="module.middleware.powermanage.requires.middleware" interface="interface.middleware.power_management" visible="true" display="Requires PowerManagement peripheral" />
+	<provides interface="interface.middleware.powermanage.${module.middleware.powermanage.name}" />
+	<property default="g_powermanage${_instance}" display="Name" id="module.middleware.powermanage.name" description="Module name.">
+        <constraint display="Name must be a valid C symbol">testSymbol("${module.middleware.powermanage.name}")</constraint>
+    </property>
+
+	<header>
+    extern const powermanage_t ${module.middleware.powermanage.name};
+    </header>
+	<includes>
+	#include &quot;r_flash_powermanage.h&quot;
+	</includes>
+	
+	<declarations>
+
+const powermanage_t ${module.middleware.powermanage.name} =
+{
+    .power_init             = &amp;power_init,
+	.setNormalMode          = &amp;setNormalMode,
+	.setHighPerformanceMode = &amp;setHighPerformanceMode,
+	.setLowPowerMode        = &amp;setLowPowerMode,
+	.setSuperLowPowerMode   = &amp;setSuperLowPowerMode,
+	.setDeepPowerDownMode   = &amp;setDeepPowerDownMode,
+};
+	
+	</declarations>
+	
+  </module>
+  
+  
+  
+  
+</raModuleDescription>

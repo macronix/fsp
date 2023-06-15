@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<raModuleDescription>
+  <config id="config.middleware.mx_vee" path="fsp_cfg/rm_vee_cfg.h" version="0">
+	<property id="config.middleware.mx_vee.checking" display="Parameter Checking" default="config.middleware.mx_vee.checking.system" description="If selected code for parameter checking is included in the build.">
+		<option id="config.middleware.mx_vee.checking.system" display="Default (BSP)" value="(BSP_CFG_PARAM_CHECKING_ENABLE)" />
+		<option id="config.middleware.mx_vee.checking.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.checking.disabled" display="Disabled" value="(0)" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.flash" display="Select Flash Type" default="config.middleware.mx_vee.flash.normal_qspi" description="If selected will enable related flash.">
+		<option id="config.middleware.mx_vee.flash.normal_qspi" display="QSPI Normal Nor Flash" value="MX_QSPI_FLASH_NORMAL" />
+		<option id="config.middleware.mx_vee.flash.normal_ospi" display="OSPI Normal Nor Flash" value="MX_OSPI_FLASH_NORMAL" />
+		<option id="config.middleware.mx_vee.flash.rww" display="OSPI RWW Nor Flash" value="MX_FLASH_SUPPORT_RWW" />
+		<option id="config.middleware.mx_vee.flash.spi_nand" display="SPI_Nand Flash(Use QSPI_CONTROL)" value="SPINAND" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.control" display="Select Controller" default="config.middleware.mx_vee.control.qspi" description="Select related controller.">
+		<option id="config.middleware.mx_vee.control.qspi" display="QSPI" value="QSPI_CONTROL" />
+		<option id="config.middleware.mx_vee.control.ospi" display="OSPI" value="OSPI_CONTROL" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.pc_protection" display="PC_Protection" default="config.middleware.mx_vee.pc_protection.disabled" description="If selected will enable pc_protection.">
+		<option id="config.middleware.mx_vee.pc_protection.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.pc_protection.disabled" display="Disabled" value="(0)" />
+	</property>
+	<property id="config.middleware.mx_vee.crc" display="CRC" default="config.middleware.mx_vee.crc.disabled" description="If selected will enable crc.">
+		<option id="config.middleware.mx_vee.crc.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.crc.disabled" display="Disabled" value="(0)" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.read_rollback" display="Read_Rollback" default="config.middleware.mx_vee.read_rollback.disabled" description="If selected will enable read_rollback.">
+		<option id="config.middleware.mx_vee.read_rollback.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.read_rollback.disabled" display="Disabled" value="(0)" />
+	</property>
+	
+
+	<property id="config.middleware.mx_vee.background" display="Background" default="config.middleware.mx_vee.background.disabled" description="If selected will enable background Thread.">
+		<option id="config.middleware.mx_vee.background.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.background.disabled" display="Disabled" value="(0)" />
+	</property>
+
+	<property id="config.middleware.mx_vee.ecc_check" display="ECC Check(Only for OctaFlash)" default="config.middleware.mx_vee.ecc_check.disabled" description="If selected will enable ECC Check.">
+		<option id="config.middleware.mx_vee.ecc_check.enabled" display="Enabled" value="(1)" />
+		<option id="config.middleware.mx_vee.ecc_check.disabled" display="Disabled" value="(0)" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.hash" display="Select Hash Type" default="config.middleware.mx_vee.hash.sequential" description="If selected will enable related hash algorithm.">
+		<option id="config.middleware.mx_vee.hash.crossbank" display="MX_EEPROM_HASH_CROSSBANK" value="MX_EEPROM_HASH_CROSSBANK" />
+		<option id="config.middleware.mx_vee.hash.hybrid" display="MX_EEPROM_HASH_HYBRID" value="MX_EEPROM_HASH_HYBRID" />
+		<option id="config.middleware.mx_vee.hash.sequential" display="MX_EEPROM_HASH_SEQUENTIAL" value="MX_EEPROM_HASH_SEQUENTIAL" />
+	</property>
+	
+	<property id="config.middleware.mx_vee.flash_chunk_size" display="MX_FLASH_CHUNK_SIZE" default="0x10" description="MX_FLASH_CHUNK_SIZE">
+	</property>
+	<property id="config.middleware.mx_vee.flash_page_size" display="MX_FLASH_PAGE_SIZE" default="0x100" description="MX_FLASH_PAGE_SIZE">
+	</property>
+	<property id="config.middleware.mx_vee.flash_sector_size" display="MX_FLASH_SECTOR_SIZE" default="0x1000" description="MX_FLASH_SECTOR_SIZE">
+	</property>
+	<property id="config.middleware.mx_vee.flash_block_size" display="MX_FLASH_BLOCK_SIZE" default="0x10000" description="MX_FLASH_BLOCK_SIZE">
+	</property>
+	<property id="config.middleware.mx_vee.flash_bank_size" display="MX_FLASH_BANK_SIZE" default="0x400000" description="MX_FLASH_BANK_SIZE">
+	</property>
+	<property id="config.middleware.mx_vee.flash_total_size" display="MX_FLASH_TOTAL_SIZE" default="0x1000000" description="MX_FLASH_TOTAL_SIZE">
+	</property>
+
+	<property id="config.middleware.mx_vee.eeprom_banks" display="MX_EEPROM_BANKS" default="4" description="MX_EEPROM_BANKS">
+	</property>
+	
+	<property id="config.middleware.mx_vee.eeprom_cluster_per_bank" display="MX_EEPROM_CLUSTERS_PER_BANK" default="1" description="MX_EEPROM_CLUSTERS_PER_BANK">
+	</property>
+	
+	<property id="config.middleware.mx_vee.eeprom_sectors_per_cluster" display="MX_EEPROM_SECTORS_PER_CLUSTER" default="16" description="MX_EEPROM_SECTORS_PER_CLUSTER">
+	</property>
+	
+	<property id="config.middleware.mx_vee.eeprom_free_sectors" display="MX_EEPROM_FREE_SECTORS" default="1" description="MX_EEPROM_FREE_SECTORS">
+	</property>
+	
+	<property id="config.middleware.mx_vee.eeprom_entry_size" display="MX_EEPROM_ENTRY_SIZE" default="256" description="MX_EEPROM_ENTRY_SIZE">
+	</property>
+
+	<property id="config.middleware.mx_vee.bank_offset" display="BANK_OFFSET" default="{0x000000, 0x400000, 0x800000, 0xc00000}" description="Set bank's offset when build vEE, if the chip has multi banks,set the offset for each bank separately, and separated by ','. eg.{0x000000, 0x800000, 0x1000000, 0x1800000} ">
+	</property>
+
+    <content>
+	#define MX_EEPROM_HASH_CROSSBANK        0    /* Page hash */
+	#define MX_EEPROM_HASH_HYBRID           1    /* Block hash */
+	#define MX_EEPROM_HASH_SEQUENTIAL       2    /* Bank hash */
+	
+	#define RM_VEE_FLASH_CFG_PARAM_CHECKING_ENABLE (${config.middleware.mx_vee.checking})
+	#define PC_PROTECTION_ENABLE (${config.middleware.mx_vee.pc_protection})
+	#define CRC_ENABLE (${config.middleware.mx_vee.crc})
+	#define ECC_CHECK_ENABLE (${config.middleware.mx_vee.ecc_check})
+	#define BACKGROUND_ENABLE (${config.middleware.mx_vee.background})
+	#define READ_ROLLBACK_ENABLE (${config.middleware.mx_vee.read_rollback})
+	
+	#define ${config.middleware.mx_vee.control}
+	#define ${config.middleware.mx_vee.flash}
+	
+	#if defined(MX_QSPI_FLASH_NORMAL) || defined(MX_OSPI_FLASH_NORMAL)
+    #define MX_FLASH_NORMAL
+	#endif	
+	
+	/* Address hash algorithm */
+	#define MX_EEPROM_HASH_AlGORITHM ${config.middleware.mx_vee.hash}
+	
+	#define MX_FLASH_CHUNK_SIZE             ${config.middleware.mx_vee.flash_chunk_size}
+	#define MX_FLASH_PAGE_SIZE              ${config.middleware.mx_vee.flash_page_size}
+	#define MX_FLASH_SECTOR_SIZE            ${config.middleware.mx_vee.flash_sector_size}
+	#define MX_FLASH_BLOCK_SIZE             ${config.middleware.mx_vee.flash_block_size}
+	#define MX_FLASH_BANK_SIZE              ${config.middleware.mx_vee.flash_bank_size}
+	#define MX_FLASH_TOTAL_SIZE             ${config.middleware.mx_vee.flash_total_size}
+	#define MX_FLASH_BANK_SIZE_MASK         ~(MX_FLASH_BANK_SIZE - 1)
+	#define MX_FLASH_BANKS                  (MX_FLASH_TOTAL_SIZE / MX_FLASH_BANK_SIZE)
+	
+	#define MX_EEPROM_BANKS                  (${config.middleware.mx_vee.eeprom_banks})
+	#define MX_EEPROM_CLUSTERS_PER_BANK      (${config.middleware.mx_vee.eeprom_cluster_per_bank})
+	#define MX_EEPROM_SECTORS_PER_CLUSTER    (${config.middleware.mx_vee.eeprom_sectors_per_cluster})
+	#define MX_EEPROM_FREE_SECTORS           (${config.middleware.mx_vee.eeprom_free_sectors})
+	#define MX_EEPROM_ENTRY_SIZE             (${config.middleware.mx_vee.eeprom_entry_size})
+	
+	#define MX_BANK_OFFSET ${config.middleware.mx_vee.bank_offset}
+		
+/* Generic RWW API */
+#ifdef GENERIC_RWW_ENABLE
+#define MX_GENERIC_RWW
+#endif
+	
+/* Power cycling protection */
+#if PC_PROTECTION_ENABLE
+#define MX_EEPROM_PC_PROTECTION
+#endif
+
+/* HW CRC protection */
+#if CRC_ENABLE
+#define MX_EEPROM_CRC_HW
+#include "r_crc.h"
+#endif
+
+/* Check on-die ECC after each read */
+#if	ECC_CHECK_ENABLE
+#define MX_EEPROM_ECC_CHECK
+#endif
+
+/* Background thread */
+#if	BACKGROUND_ENABLE
+#define MX_EEPROM_BACKGROUND_THREAD
+#endif
+
+/* read recovery */
+#if	READ_ROLLBACK_ENABLE
+#define MX_EEPROM_READ_ROLLBACK
+#endif
+
+
+#ifdef QSPI_CONTROL
+#include "r_qspi.h"
+#endif
+
+#ifdef OSPI_CONTROL
+#include "r_ospi.h"
+#endif
+	
+	</content>
+  </config>
+  
+  <module config="config.middleware.mx_vee" display="Storage|MXIC Virtual EEPROM" id="module.middleware.mx_vee" version="1">
+	<constraint display="Unique name required for each instance">
+		"${interface.middleware.mx_vee.${module.middleware.mx_vee.name}}" === "1"
+    </constraint>
+	<requires id="module.middleware.mx_vee.requires.r_controller" interface="interface.driver.spi_flash" display="Add Controller [Required]" find="true">
+    </requires>
+	<requires id="module.middleware.mx_vee.requires.r_crc" interface="interface.driver.crc_on_crc" display="Add CRC Implementation [Optional]">
+    </requires>
+    <provides interface="interface.middleware.mx_vee" />
+    <provides interface="interface.middleware.mx_vee.${module.middleware.mx_vee.name}" />
+	<property default="g_mx_vee${_instance}" display="Name" id="module.middleware.mx_vee.name" description="Module name.">
+        <constraint display="Name must be a valid C symbol">testSymbol("${module.middleware.mx_vee.name}")</constraint>
+    </property>
+	
+	<header>
+/*****************MXIC vEE Defines and declarations****************************/
+    extern const mxic_vee_instance_t ${module.middleware.mx_vee.name};
+    extern mxic_vee_instance_ctrl_t ${module.middleware.mx_vee.name}_ctrl;
+    extern const mxic_vee_cfg_t ${module.middleware.mx_vee.name}_cfg;
+/******************************************************************************/
+
+	
+    </header>
+	<includes>
+	#include &quot;rm_vee_api.h&quot;
+	#include &quot;rm_vee.h&quot;
+	</includes>
+	
+	<declarations>
+mxic_vee_instance_ctrl_t ${module.middleware.mx_vee.name}_ctrl;
+
+
+const mxic_vee_ext_cfg_t ${module.middleware.mx_vee.name}_ext_cfg = 
+{
+#ifdef MX_EEPROM_CRC_HW
+	.p_crc = &amp;${module.middleware.mx_vee.requires.r_crc::module.driver.crc.name},
+#endif
+#ifdef QSPI_CONTROL
+    .p_controller = &amp;${module.middleware.mx_vee.requires.r_controller::module.driver.qspi.name},
+#endif
+#ifdef OSPI_CONTROL
+    .p_controller = &amp;${module.middleware.mx_vee.requires.r_controller::module.driver.ospi.name},
+#endif
+};
+
+	
+	
+const mxic_vee_cfg_t ${module.middleware.mx_vee.name}_cfg = 
+{
+	.mx_eeprom_banks = MX_EEPROM_BANKS,
+	.mx_eeprom_sectors_per_cluster = MX_EEPROM_SECTORS_PER_CLUSTER,
+	.mx_eeprom_clusters_per_bank = MX_EEPROM_CLUSTERS_PER_BANK,
+	.mx_eeprom_free_sectors = MX_EEPROM_FREE_SECTORS,
+	.mx_eeprom_entry_size = MX_EEPROM_ENTRY_SIZE,
+	.p_extend     = &amp;${module.middleware.mx_vee.name}_ext_cfg,
+};
+
+const mxic_vee_instance_t ${module.middleware.mx_vee.name} =
+{
+    .p_ctrl = &amp;${module.middleware.mx_vee.name}_ctrl,
+    .p_cfg =  &amp;${module.middleware.mx_vee.name}_cfg,
+    .p_api =  &amp;g_mxic_vee_on_flash,
+};
+	
+	</declarations>
+	
+  </module>
+  
+  
+  
+  
+</raModuleDescription>
