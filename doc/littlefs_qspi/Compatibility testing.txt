@@ -1,6 +1,3 @@
 Compatibility testing
 This pack has been tested and can be used normally in the following FSP versions:
-	FSP4.0.0
-	FSP4.1.0
-	FSP4.2.0
-	FSP4.3.0
+	FSP5.0.0
