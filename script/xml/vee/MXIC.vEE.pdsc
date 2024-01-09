@@ -7,33 +7,33 @@
   <supportContact/>
   <license/>
   <releases>
-    <release version="1.0.0+fsp.4.3.0">1.0.0+fsp.4.3.0</release>
+    <release version="1.0.0+fsp.5.0.0">1.0.0+fsp.5.0.0</release>
   </releases>
   <components>
-    <component Cclass="Middleware" Cgroup="all" Csub="vEE" Cvendor="MXIC" Cversion="1.0.0+fsp.4.3.0" condition="">
+    <component Cclass="Middleware" Cgroup="all" Csub="vEE" Cvendor="MXIC" Cversion="1.0.0+fsp.5.0.0" condition="">
       <description/>
       <files>
-        <file category="source" condition="" name="ra/fsp/inc/api/rm_vee_api.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/inc/instances/rm_vee.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/rm_rww.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/rm_vee.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bch.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bch.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bitops.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/mx_define.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/mxic_hc.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/nand_bch.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/nand_bch.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/randomizer.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/randomizer.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_app.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_app.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_cmd.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_cmd.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_ops.c" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_ops.h" version="1.0.0+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/api/rm_vee_api.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/instances/rm_vee.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/rm_rww.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/rm_vee.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bch.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bch.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/bitops.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/mx_define.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/mxic_hc.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/nand_bch.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/nand_bch.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/randomizer.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/randomizer.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_app.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_app.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_cmd.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_cmd.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_ops.c" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_vEE/spi_nand_driver/spi_nand_ops.h" version="1.0.0+fsp.5.0.0"/>
       </files>
     </component>
   </components>

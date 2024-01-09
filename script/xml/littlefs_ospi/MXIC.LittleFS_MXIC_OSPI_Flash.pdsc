@@ -7,15 +7,15 @@
   <supportContact/>
   <license/>
   <releases>
-    <release version="1.0.1+fsp.4.3.0">1.0.1+fsp.4.3.0</release>
+    <release version="1.0.0+fsp.5.0.0">1.0.0+fsp.5.0.0</release>
   </releases>
   <components>
-    <component Cclass="Middleware" Cgroup="all" Csub="littlefs_mxic_ospi_flash" Cvendor="MXIC" Cversion="1.0.1+fsp.4.3.0" condition="">
+    <component Cclass="Middleware" Cgroup="all" Csub="littlefs_mxic_ospi_flash" Cvendor="MXIC" Cversion="1.0.0+fsp.5.0.0" condition="">
       <description/>
       <files>
-        <file category="source" condition="" name="ra/fsp/inc/api/rm_littlefs_api.h" version="1.0.1+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/inc/instances/rm_littlefs_mxic_ospi_flash.h" version="1.0.1+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_ospi_flash/rm_littlefs_mxic_ospi_flash.c" version="1.0.1+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/api/rm_littlefs_api.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/instances/rm_littlefs_mxic_ospi_flash.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/rm_littlefs_mxic_ospi_flash/rm_littlefs_mxic_ospi_flash.c" version="1.0.0+fsp.5.0.0"/>
       </files>
     </component>
   </components>

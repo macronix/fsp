@@ -7,15 +7,15 @@
   <supportContact/>
   <license/>
   <releases>
-    <release version="1.0.0+fsp.4.3.0">1.0.0+fsp.4.3.0</release>
+    <release version="1.0.0+fsp.5.0.0">1.0.0+fsp.5.0.0</release>
   </releases>
   <components>
-    <component Cclass="Driver" Cgroup="all" Csub="MX25R_Extend" Cvendor="MXIC" Cversion="1.0.0+fsp.4.3.0" condition="">
+    <component Cclass="Driver" Cgroup="all" Csub="MX25R_Extend" Cvendor="MXIC" Cversion="1.0.0+fsp.5.0.0" condition="">
       <description/>
       <files>
-        <file category="source" condition="" name="ra/fsp/inc/api/r_mx25r_extend_api.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/inc/instances/r_mx25r_extend.h" version="1.0.0+fsp.4.3.0"/>
-        <file category="source" condition="" name="ra/fsp/src/r_mx25r/r_mx25r_extend.c" version="1.0.0+fsp.4.3.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/api/r_mx25r_extend_api.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/inc/instances/r_mx25r_extend.h" version="1.0.0+fsp.5.0.0"/>
+        <file category="source" condition="" name="ra/fsp/src/r_mx25r/r_mx25r_extend.c" version="1.0.0+fsp.5.0.0"/>
       </files>
     </component>
   </components>
