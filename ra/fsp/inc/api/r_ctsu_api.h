@@ -26,8 +26,6 @@
  * @section CTSU_API_Summary Summary
  * The CTSU interface provides CTSU functionality.
  *
- * The CTSU interface can be implemented by:
- * - @ref CTSU
  *
  * @{
  **********************************************************************************************************************/
@@ -149,6 +147,7 @@ typedef enum e_ctsu_ssdiv
 typedef enum e_ctsu_specific_data_type
 {
     CTSU_SPECIFIC_RAW_DATA,
+    CTSU_SPECIFIC_CCO_CORRECTION_DATA,
     CTSU_SPECIFIC_CORRECTION_DATA,
     CTSU_SPECIFIC_SELECTED_FREQ,
 } ctsu_specific_data_type_t;
@@ -161,8 +160,6 @@ typedef struct st_ctsu_callback_args
 } ctsu_callback_args_t;
 
 /** CTSU Control block. Allocate an instance specific control block to pass into the API calls.
- * @par Implemented as
- * - ctsu_instance_ctrl_t
  */
 typedef void ctsu_ctrl_t;
 
@@ -218,8 +215,6 @@ typedef struct st_ctsu_cfg
 typedef struct st_ctsu_api
 {
     /** Open driver.
-     * @par Implemented as
-     * - @ref R_CTSU_Open()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_cfg        Pointer to pin configuration structure.
@@ -227,16 +222,12 @@ typedef struct st_ctsu_api
     fsp_err_t (* open)(ctsu_ctrl_t * const p_ctrl, ctsu_cfg_t const * const p_cfg);
 
     /** Scan start.
-     * @par Implemented as
-     * - @ref R_CTSU_ScanStart()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* scanStart)(ctsu_ctrl_t * const p_ctrl);
 
     /** Data get.
-     * @par Implemented as
-     * - @ref R_CTSU_DataGet()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      * @param[out] p_data       Pointer to get data array.
@@ -244,24 +235,18 @@ typedef struct st_ctsu_api
     fsp_err_t (* dataGet)(ctsu_ctrl_t * const p_ctrl, uint16_t * p_data);
 
     /** ScanStop.
-     * @par Implemented as
-     * - @ref R_CTSU_ScanStop()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* scanStop)(ctsu_ctrl_t * const p_ctrl);
 
     /** Diagnosis.
-     * @par Implemented as
-     * - @ref R_CTSU_Diagnosis()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* diagnosis)(ctsu_ctrl_t * const p_ctrl);
 
     /** Specify callback function and optional context pointer and working memory pointer.
-     * @par Implemented as
-     * - @ref R_CTSU_CallbackSet()
      *
      * @param[in]   p_ctrl                   Pointer to the CTSU control block.
      * @param[in]   p_callback               Callback function
@@ -269,20 +254,16 @@ typedef struct st_ctsu_api
      * @param[in]   p_working_memory         Pointer to volatile memory where callback structure can be allocated.
      *                                       Callback arguments allocated here are only valid during the callback.
      */
-    fsp_err_t (* callbackSet)(ctsu_ctrl_t * const p_api_ctrl, void (* p_callback)(ctsu_callback_args_t *),
+    fsp_err_t (* callbackSet)(ctsu_ctrl_t * const p_ctrl, void (* p_callback)(ctsu_callback_args_t *),
                               void const * const p_context, ctsu_callback_args_t * const p_callback_memory);
 
     /** Close driver.
-     * @par Implemented as
-     * - @ref R_CTSU_Close()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* close)(ctsu_ctrl_t * const p_ctrl);
 
     /** Specific Data get.
-     * @par Implemented as
-     * - @ref R_CTSU_SpecificDataGet()
      *
      * @param[in]  p_ctrl              Pointer to control structure.
      * @param[out] p_specific_data     Pointer to get specific data array.
@@ -292,8 +273,6 @@ typedef struct st_ctsu_api
                                   ctsu_specific_data_type_t specific_data_type);
 
     /** Data Insert.
-     * @par Implemented as
-     * - @ref R_CTSU_DataInsert()
      *
      * @param[in]  p_ctrl              Pointer to control structure.
      * @param[in]  p_insert_data       Pointer to insert data.
@@ -301,8 +280,6 @@ typedef struct st_ctsu_api
     fsp_err_t (* dataInsert)(ctsu_ctrl_t * const p_ctrl, uint16_t * p_insert_data);
 
     /** Adjust the offset value to tune the sensor.
-     * @par Implemented as
-     * - @ref R_CTSU_OffsetTuning()
      *
      * @param[in]  p_ctrl          Pointer to control structure.
      */

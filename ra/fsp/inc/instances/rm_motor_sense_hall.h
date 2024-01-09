@@ -49,23 +49,44 @@ typedef enum e_motor_sense_hall_direction
     MOTOR_SENSE_HALL_DIRECTION_CCW = 0, ///< Rotation direction counter clockwise
 } motor_sense_hall_direction_t;
 
+typedef enum e_motor_sense_hall_signal_status
+{
+    MOTOR_SENSE_HALL_SIGNAL_STATUS_INITIAL  = 1, ///< Hall signal isn't captured. (Initial)
+    MOTOR_SENSE_HALL_SIGNAL_STATUS_CAPTURED = 0, ///< Hall signal is captured.
+} motor_sense_hall_signal_status_t;
+
+/** This stucture is provided to receive speed information. */
+typedef struct st_motor_sense_hall_input
+{
+    float f4_ref_speed_rad_ctrl;       ///< Speed Reference [rad/sec]
+} motor_sense_hall_input_t;
+
+/** Optional Motor sense hall extension data structure. */
 typedef struct st_motor_sense_hall_extended_cfg
 {
-    bsp_io_port_pin_t port_hall_sensor_u;                       ///< Hall U-signal input port     BSP_IO_PORT_12_PIN_04
-    bsp_io_port_pin_t port_hall_sensor_v;                       ///< Hall V-signal input port     BSP_IO_PORT_12_PIN_05
-    bsp_io_port_pin_t port_hall_sensor_w;                       ///< Hall W-signal input port     BSP_IO_PORT_11_PIN_01
+    bsp_io_port_pin_t port_hall_sensor_u;                       ///< Hall U-signal input port
+    bsp_io_port_pin_t port_hall_sensor_v;                       ///< Hall V-signal input port
+    bsp_io_port_pin_t port_hall_sensor_w;                       ///< Hall W-signal input port
 
     uint8_t u1_hall_pattern[MOTOR_SENSE_HALL_SPEED_COUNTS + 1]; ///< The order of hall signal pattern
 
-    float f_pwm_carrier_freq;                                   ///< PWM carrier frequency        20.0kHz
-    float f_angle_correct;                                      ///< Coefficent to correct angle  0.4
+    float f_pwm_carrier_freq;                                   ///< PWM carrier frequency (or Decimated frequency at decimation of current process)
+    float f_angle_correct;                                      ///< Coefficent to correct angle
+
+    uint8_t  u1_trigger_hall_signal_count;                      ///< Rotation counts to wait the stability
+    float    f4_target_pseudo_speed_rad;                        ///< Target value for pseudo speed estimates [radian/second]
+    float    f4_reach_time_msec;                                ///< Time until the pseudo speed estimate reaches the target value [msec]
+    uint16_t u2_trigger_carrier_count;                          ///< Estimated speed 0 until this trigger
 
     uint16_t u2_default_counts;                                 ///< Default counts for period of hall signal to reset
     uint16_t u2_maximum_period;                                 ///< Maximum counts of hall signal period
 
     uint8_t u1_hall_polepairs;                                  ///< Hall pole pairs
+
+    float f4_start_speed_rad;                                   ///< Speed to judge start [radian/second]
 } motor_sense_hall_extended_cfg_t;
 
+/** SENSE_HALL control block. DO NOT INITIALIZE. Initialization occurs when @ref motor_angle_api_t::open is called. */
 typedef struct st_motor_sense_hall_instance_ctrl
 {
     uint32_t open;
@@ -80,6 +101,17 @@ typedef struct st_motor_sense_hall_instance_ctrl
     float    f_angle;                                       ///< Rotor angle [radian]
     float    f_angle_per_count;                             ///< Angle per 1 count
     float    f_calculated_speed;                            ///< Calculated speed [radian/second]
+
+    /* For startup */
+    uint8_t u1_hall_signal_memory;                          ///< Memorized hall signal at startup
+    motor_sense_hall_signal_status_t hall_signal_status;    ///< Hall signal status
+    uint8_t                  u1_hall_signal_count;          ///< Rotation counter
+    float                    f4_pseudo_speed_rad;           ///< Pseudo speed used for startup [radian/second]
+    float                    f4_add_pseudo_speed_rad;       ///< Step of pseudo speed to update [radian/second]
+    uint16_t                 u2_startup_carrier_count;      ///< Counter of carrier interrupt for startup
+    motor_sense_hall_input_t st_input;                      ///< Input parameter structure
+
+    uint8_t u1_startup_flag;                                ///< Flag for startup
 
     motor_angle_cfg_t const * p_cfg;
 } motor_sense_hall_instance_ctrl_t;

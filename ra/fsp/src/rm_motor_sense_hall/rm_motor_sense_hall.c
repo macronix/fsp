@@ -28,17 +28,22 @@
  * Macro definitions
  **********************************************************************************************************************/
 
-#define     MOTOR_SENSE_HALL_OPEN             (('M' << 24U) | ('T' << 16U) | ('S' << 8U) | ('H' << 0U))
+#define     MOTOR_SENSE_HALL_OPEN              (('M' << 24U) | ('T' << 16U) | ('S' << 8U) | ('H' << 0U))
 
-#define     MOTOR_SENSE_HALL_TWOPI            (3.14159265358979F * 2.0F)
-#define     MOTOR_SENSE_HALL_30DEGREE         (MOTOR_SENSE_HALL_TWOPI / 12.0F)
-#define     MOTOR_SENSE_HALL_60DEGREE         (60.0F)
-#define     MOTOR_SENSE_HALL_360DEGREE        (360.0F)
+#define     MOTOR_SENSE_HALL_TWOPI             (3.14159265358979F * 2.0F)
+#define     MOTOR_SENSE_HALL_30DEGREE          (MOTOR_SENSE_HALL_TWOPI / 12.0F)
+#define     MOTOR_SENSE_HALL_60DEGREE          (60.0F)
+#define     MOTOR_SENSE_HALL_360DEGREE         (360.0F)
 
-#define     MOTOR_SENSE_HALL_U_SHIFT          (2)
-#define     MOTOR_SENSE_HALL_V_SHIFT          (1)
+#define     MOTOR_SENSE_HALL_U_SHIFT           (2)
+#define     MOTOR_SENSE_HALL_V_SHIFT           (1)
 
-#define     MOTOR_SENSE_HALL_CALCULATE_KHZ    (1000.0F)
+#define     MOTOR_SENSE_HALL_CALCULATE_KHZ     (1000.0F)
+
+#define     MOTOR_SENSE_HALL_CALCULATE_MSEC    (1000.0F)
+
+#define     MOTOR_SENSE_HALL_FLAG_SET          (1)
+#define     MOTOR_SENSE_HALL_FLAG_CLEAR        (0)
 
 #ifndef MTR_SENSE_HALL_ERROR_RETURN
 
@@ -104,12 +109,19 @@ fsp_err_t RM_MOTOR_SENSE_HALL_Open (motor_angle_ctrl_t * const p_ctrl, motor_ang
     MTR_SENSE_HALL_ERROR_RETURN(MOTOR_SENSE_HALL_OPEN != p_instance_ctrl->open, FSP_ERR_ALREADY_OPEN);
 #endif
 
+    p_instance_ctrl->p_cfg = p_cfg;
+
+    motor_sense_hall_extended_cfg_t * p_extended_cfg =
+        (motor_sense_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
 #if (MOTOR_SENSE_HALL_CFG_PARAM_CHECKING_ENABLE)
-    motor_sense_hall_extended_cfg_t * p_extended_cfg = (motor_sense_hall_extended_cfg_t *) p_cfg->p_extend;
     FSP_ASSERT(p_extended_cfg != NULL);
 #endif
 
-    p_instance_ctrl->p_cfg = p_cfg;
+    /* Set the additional step of pseudo speed */
+    p_instance_ctrl->f4_add_pseudo_speed_rad  = 1.0F / (p_extended_cfg->f_pwm_carrier_freq);
+    p_instance_ctrl->f4_add_pseudo_speed_rad *= p_extended_cfg->f4_target_pseudo_speed_rad;
+    p_instance_ctrl->f4_add_pseudo_speed_rad /= p_extended_cfg->f4_reach_time_msec;
 
     motor_sense_hall_reset(p_instance_ctrl);
 
@@ -182,17 +194,25 @@ fsp_err_t RM_MOTOR_SENSE_HALL_CurrentSet (motor_angle_ctrl_t * const            
 /*******************************************************************************************************************//**
  * @brief Set Speed Information. Implements @ref motor_angle_api_t::speedSet
  *
- * @retval FSP_ERR_UNSUPPORTED      Unsupported.
+ * @retval FSP_SUCCESS              Data get successfully.
+ * @retval FSP_ERR_ASSERTION        Null pointer.
+ * @retval FSP_ERR_NOT_OPEN         Module is not open.
  **********************************************************************************************************************/
 fsp_err_t RM_MOTOR_SENSE_HALL_SpeedSet (motor_angle_ctrl_t * const p_ctrl,
                                         float const                speed_ctrl,
                                         float const                damp_speed)
 {
-    FSP_PARAMETER_NOT_USED(p_ctrl);
-    FSP_PARAMETER_NOT_USED(speed_ctrl);
+    motor_sense_hall_instance_ctrl_t * p_instance_ctrl = (motor_sense_hall_instance_ctrl_t *) p_ctrl;
+
+#if (MOTOR_SENSE_HALL_CFG_PARAM_CHECKING_ENABLE)
+    FSP_ASSERT(p_instance_ctrl != NULL);
+    MTR_SENSE_HALL_ERROR_RETURN(MOTOR_SENSE_HALL_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+#endif
+    p_instance_ctrl->st_input.f4_ref_speed_rad_ctrl = speed_ctrl;
+
     FSP_PARAMETER_NOT_USED(damp_speed);
 
-    return FSP_ERR_UNSUPPORTED;
+    return FSP_SUCCESS;
 }
 
 /*******************************************************************************************************************//**
@@ -234,6 +254,7 @@ fsp_err_t RM_MOTOR_SENSE_HALL_AngleSpeedGet (motor_angle_ctrl_t * const p_ctrl,
     motor_sense_hall_extended_cfg_t * p_extended_cfg =
         (motor_sense_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
 
+    float    f_temp0;
     uint32_t u4_uvw_sum    = 0U;
     uint32_t u4_temp_level = 0U;
     float    f_temp_angle  = 0.0F;
@@ -254,6 +275,12 @@ fsp_err_t RM_MOTOR_SENSE_HALL_AngleSpeedGet (motor_angle_ctrl_t * const p_ctrl,
     if (0U == p_instance_ctrl->u1_last_hall_signal)
     {
         return FSP_SUCCESS;
+    }
+
+    /* Counts carrier interrupt for startup */
+    if (p_extended_cfg->u2_trigger_carrier_count > p_instance_ctrl->u2_startup_carrier_count)
+    {
+        p_instance_ctrl->u2_startup_carrier_count++;
     }
 
     /* Count time with limitation */
@@ -377,7 +404,46 @@ fsp_err_t RM_MOTOR_SENSE_HALL_AngleSpeedGet (motor_angle_ctrl_t * const p_ctrl,
         /* Do nothing */
     }
 
-    *p_speed = p_instance_ctrl->f_calculated_speed;
+    f_temp0 = fabsf(p_instance_ctrl->f_calculated_speed);
+
+    /* Pseudo speed is used until the motor rotation become stable. */
+    if ((p_extended_cfg->f4_start_speed_rad > f_temp0) &&
+        (MOTOR_SENSE_HALL_FLAG_SET == p_instance_ctrl->u1_startup_flag))
+    {
+        if (p_extended_cfg->u2_trigger_carrier_count <= p_instance_ctrl->u2_startup_carrier_count)
+        {
+            /* After set timing, pseudo speed is updated by the step. */
+            if (p_instance_ctrl->st_input.f4_ref_speed_rad_ctrl >= 0.0F)
+            {
+                p_instance_ctrl->f4_pseudo_speed_rad += p_instance_ctrl->f4_add_pseudo_speed_rad;
+                if (p_extended_cfg->f4_target_pseudo_speed_rad < p_instance_ctrl->f4_pseudo_speed_rad)
+                {
+                    p_instance_ctrl->f4_pseudo_speed_rad = p_extended_cfg->f4_target_pseudo_speed_rad;
+                }
+            }
+            else
+            {
+                p_instance_ctrl->f4_pseudo_speed_rad -= p_instance_ctrl->f4_add_pseudo_speed_rad;
+                if (-(p_extended_cfg->f4_target_pseudo_speed_rad) > p_instance_ctrl->f4_pseudo_speed_rad)
+                {
+                    p_instance_ctrl->f4_pseudo_speed_rad = -(p_extended_cfg->f4_target_pseudo_speed_rad);
+                }
+            }
+
+            *p_speed = p_instance_ctrl->f4_pseudo_speed_rad;
+        }
+        else
+        {
+            /* Until set timing, speed is set to zero. */
+            *p_speed = 0.0F;
+        }
+    }
+    else
+    {
+        p_instance_ctrl->u1_startup_flag = MOTOR_SENSE_HALL_FLAG_CLEAR;
+        *p_speed = p_instance_ctrl->f_calculated_speed;
+    }
+
     *p_angle = f_temp_angle;
 
     return FSP_SUCCESS;
@@ -418,7 +484,13 @@ fsp_err_t RM_MOTOR_SENSE_HALL_ParameterUpdate (motor_angle_ctrl_t * const p_ctrl
 
     p_instance_ctrl->p_cfg = p_cfg;
 
-    motor_sense_hall_reset(p_instance_ctrl);
+    motor_sense_hall_extended_cfg_t * p_extended_cfg =
+        (motor_sense_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    /* Set the additional step of pseudo speed */
+    p_instance_ctrl->f4_add_pseudo_speed_rad  = 1.0F / (p_extended_cfg->f_pwm_carrier_freq);
+    p_instance_ctrl->f4_add_pseudo_speed_rad *= p_extended_cfg->f4_target_pseudo_speed_rad;
+    p_instance_ctrl->f4_add_pseudo_speed_rad /= p_extended_cfg->f4_reach_time_msec;
 
     return FSP_SUCCESS;
 }
@@ -500,6 +572,14 @@ static void motor_sense_hall_reset (motor_sense_hall_instance_ctrl_t * p_ctrl)
     p_ctrl->f_angle             = 0.0F;
     p_ctrl->f_angle_per_count   = 0.0F;
     p_ctrl->f_calculated_speed  = 0.0F;
+
+    /* Reset startup parameters. */
+    p_ctrl->f4_pseudo_speed_rad = 0.0F;
+
+    p_ctrl->st_input.f4_ref_speed_rad_ctrl = 0.0F;
+    p_ctrl->u2_startup_carrier_count       = 0U;
+
+    p_ctrl->u1_startup_flag = MOTOR_SENSE_HALL_FLAG_SET;
 
     for (i = 0; i < MOTOR_SENSE_HALL_SPEED_COUNTS; i++)
     {

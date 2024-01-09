@@ -103,6 +103,8 @@ typedef BSP_CMSE_NONSECURE_CALL void (*volatile flash_hp_prv_ns_callback)(flash_
  #define FLASH_HP_FCU_CONFIG_SET_DUAL_MODE            (0x0300A110U)
  #define FLASH_HP_FCU_CONFIG_SET_ACCESS_STARTUP       (0x0300A130U)
  #define FLASH_HP_FCU_CONFIG_SET_BANK_MODE            (0x1300A190U)
+ #define FLASH_HP_FCU_CONFIG_SET_BANK_MODE_SEC        (0x0300A210U)
+ #define FLASH_HP_BANK_MODE_SECURITY_ATTRIBUTION      (0x0300A290U)
 #else
  #if BSP_FEATURE_FLASH_SUPPORTS_ACCESS_WINDOW
   #define FLASH_HP_FCU_CONFIG_SET_ACCESS_STARTUP      (0x0000A160U)
@@ -113,6 +115,8 @@ typedef BSP_CMSE_NONSECURE_CALL void (*volatile flash_hp_prv_ns_callback)(flash_
  #endif
  #define FLASH_HP_FCU_CONFIG_SET_DUAL_MODE            (0x0100A110U)
  #define FLASH_HP_FCU_CONFIG_SET_BANK_MODE            (0x0100A190U)
+ #define FLASH_HP_FCU_CONFIG_SET_BANK_MODE_SEC        (0x0100A210U)
+ #define FLASH_HP_BANK_MODE_SECURITY_ATTRIBUTION      (0x0100A290U)
 #endif
 
 /* Zero based offset into g_configuration_area_data[] for FAWS */
@@ -241,11 +245,9 @@ static flash_regions_t g_flash_data_region =
     .p_block_array = &g_data_flash_macro_info
 };
 
-#if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1) && (BSP_FEATURE_FLASH_HP_SUPPORTS_DUAL_BANK == 1)
-static volatile uint32_t * const flash_hp_banksel = (uint32_t *) FLASH_HP_FCU_CONFIG_SET_BANK_MODE;
- #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
+#if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1) && (BSP_FEATURE_FLASH_HP_SUPPORTS_DUAL_BANK == 1) && \
+    (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
 static volatile uint32_t * const flash_hp_dualsel = (uint32_t *) FLASH_HP_FCU_CONFIG_SET_DUAL_MODE;
- #endif
 #endif
 
 /***********************************************************************************************************************
@@ -304,6 +306,7 @@ static fsp_err_t flash_hp_cf_write(flash_hp_instance_ctrl_t * const p_ctrl) PLAC
 
  #if (BSP_FEATURE_FLASH_HP_SUPPORTS_DUAL_BANK == 1)
 static fsp_err_t flash_hp_bank_swap(flash_hp_instance_ctrl_t * const p_ctrl) PLACE_IN_RAM_SECTION;
+static uint32_t  flash_hp_banksel_bankswp_addr_get(void);
 
  #endif
 
@@ -476,7 +479,7 @@ fsp_err_t R_FLASH_HP_Write (flash_ctrl_t * const p_api_ctrl,
 #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
 
     /* Verify write parameters. If failure return error. */
-    err = r_flash_hp_write_bc_parameter_checking(p_ctrl, flash_address, num_bytes, true);
+    err = r_flash_hp_write_bc_parameter_checking(p_ctrl, flash_address & ~BSP_FEATURE_TZ_NS_OFFSET, num_bytes, true);
     FSP_ERROR_RETURN((err == FSP_SUCCESS), err);
 #endif
 
@@ -486,7 +489,7 @@ fsp_err_t R_FLASH_HP_Write (flash_ctrl_t * const p_api_ctrl,
     p_ctrl->current_operation    = FLASH_OPERATION_NON_BGO;
 
 #if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1)
-    if (flash_address < BSP_FEATURE_FLASH_DATA_FLASH_START)
+    if ((flash_address & ~BSP_FEATURE_TZ_NS_OFFSET) < BSP_FEATURE_FLASH_DATA_FLASH_START)
     {
  #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
 
@@ -555,7 +558,7 @@ fsp_err_t R_FLASH_HP_Erase (flash_ctrl_t * const p_api_ctrl, uint32_t const addr
     p_ctrl->current_operation = FLASH_OPERATION_NON_BGO;
 
 #if (FLASH_HP_CFG_CODE_FLASH_PROGRAMMING_ENABLE == 1)
-    if (address < BSP_FEATURE_FLASH_DATA_FLASH_START)
+    if ((address & ~BSP_FEATURE_TZ_NS_OFFSET) < BSP_FEATURE_FLASH_DATA_FLASH_START)
     {
         uint32_t start_address = 0;
  #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
@@ -563,13 +566,14 @@ fsp_err_t R_FLASH_HP_Erase (flash_ctrl_t * const p_api_ctrl, uint32_t const addr
  #endif
 
  #if BSP_FEATURE_FLASH_CODE_FLASH_START != 0
-        FSP_ERROR_RETURN(BSP_FEATURE_FLASH_CODE_FLASH_START <= address, FSP_ERR_INVALID_ADDRESS);
+        FSP_ERROR_RETURN(BSP_FEATURE_FLASH_CODE_FLASH_START <= (address & ~BSP_FEATURE_TZ_NS_OFFSET),
+                         FSP_ERR_INVALID_ADDRESS);
  #endif
 
         /* Configure the current parameters based on if the operation is for code flash or data flash. */
-        if (((address) & FLASH_HP_PRV_BANK1_MASK) < BSP_FEATURE_FLASH_HP_CF_REGION0_SIZE)
+        if ((((address & ~BSP_FEATURE_TZ_NS_OFFSET)) & FLASH_HP_PRV_BANK1_MASK) < BSP_FEATURE_FLASH_HP_CF_REGION0_SIZE)
         {
-            start_address = address & ~(BSP_FEATURE_FLASH_HP_CF_REGION0_BLOCK_SIZE - 1);
+            start_address = address & ~((BSP_FEATURE_TZ_NS_OFFSET | BSP_FEATURE_FLASH_HP_CF_REGION0_BLOCK_SIZE) - 1);
 
  #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
             region0_blocks = (BSP_FEATURE_FLASH_HP_CF_REGION0_SIZE - (start_address & FLASH_HP_PRV_BANK1_MASK)) /
@@ -578,7 +582,7 @@ fsp_err_t R_FLASH_HP_Erase (flash_ctrl_t * const p_api_ctrl, uint32_t const addr
         }
         else
         {
-            start_address = address & ~(BSP_FEATURE_FLASH_HP_CF_REGION1_BLOCK_SIZE - 1);
+            start_address = address & ~((BSP_FEATURE_TZ_NS_OFFSET | BSP_FEATURE_FLASH_HP_CF_REGION1_BLOCK_SIZE) - 1);
         }
 
  #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
@@ -589,25 +593,41 @@ fsp_err_t R_FLASH_HP_Erase (flash_ctrl_t * const p_api_ctrl, uint32_t const addr
         }
 
   #if BSP_FEATURE_FLASH_HP_SUPPORTS_DUAL_BANK
-        uint32_t rom_end =
-            (FLASH_HP_PRV_DUALSEL_BANKMD_MASK ==
-             (*flash_hp_dualsel & FLASH_HP_PRV_DUALSEL_BANKMD_MASK)) ? BSP_ROM_SIZE_BYTES : (BSP_ROM_SIZE_BYTES &
-                                                                                             ~UINT16_MAX) / 2;
+        uint32_t rom_end = 0;
 
-        FSP_ERROR_RETURN((start_address & FLASH_HP_PRV_BANK1_MASK) + num_bytes <= rom_end, FSP_ERR_INVALID_BLOCKS);
+        if ((FLASH_HP_PRV_DUALSEL_BANKMD_MASK != (*flash_hp_dualsel & FLASH_HP_PRV_DUALSEL_BANKMD_MASK)))
+        {
+            /* Start address out of range  */
+            rom_end = BSP_FEATURE_FLASH_HP_CF_DUAL_BANK_START + ((BSP_ROM_SIZE_BYTES & ~UINT16_MAX) / 2);
+            FSP_ERROR_RETURN(start_address < rom_end, FSP_ERR_INVALID_ADDRESS);
+
+            /* Region to erase must fall within bank */
+            rom_end = (BSP_ROM_SIZE_BYTES & ~UINT16_MAX) / 2;
+            FSP_ERROR_RETURN((start_address & FLASH_HP_PRV_BANK1_MASK) + num_bytes <= rom_end, FSP_ERR_INVALID_BLOCKS);
+        }
+        else
+        {
+            /* Start address out of range  */
+            rom_end = BSP_FEATURE_FLASH_CODE_FLASH_START + BSP_ROM_SIZE_BYTES;
+            FSP_ERROR_RETURN(start_address < rom_end, FSP_ERR_INVALID_ADDRESS);
+
+            /* Requested region to erase out of range  */
+            FSP_ERROR_RETURN(start_address + num_bytes <= rom_end, FSP_ERR_INVALID_BLOCKS);
+        }
+
   #else
         FSP_ERROR_RETURN(start_address + num_bytes <= (BSP_FEATURE_FLASH_CODE_FLASH_START + BSP_ROM_SIZE_BYTES),
                          FSP_ERR_INVALID_BLOCKS);
   #endif
  #endif
-
-        err = flash_hp_cf_erase(p_ctrl, start_address, num_blocks);
+        start_address |= (address & BSP_FEATURE_TZ_NS_OFFSET);
+        err            = flash_hp_cf_erase(p_ctrl, start_address, num_blocks);
     }
     else
 #endif
     {
 #if (FLASH_HP_CFG_DATA_FLASH_PROGRAMMING_ENABLE == 1)
-        uint32_t start_address = address & ~(BSP_FEATURE_FLASH_HP_DF_BLOCK_SIZE - 1);
+        uint32_t start_address = address & ~((BSP_FEATURE_TZ_NS_OFFSET | BSP_FEATURE_FLASH_HP_DF_BLOCK_SIZE) - 1);
 
  #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
         uint32_t num_bytes = num_blocks * BSP_FEATURE_FLASH_HP_DF_BLOCK_SIZE;
@@ -621,7 +641,8 @@ fsp_err_t R_FLASH_HP_Erase (flash_ctrl_t * const p_api_ctrl, uint32_t const addr
  #endif
 
         /* Initiate the flash erase. */
-        err = flash_hp_df_erase(p_ctrl, start_address, num_blocks);
+        start_address |= (address & BSP_FEATURE_TZ_NS_OFFSET);
+        err            = flash_hp_df_erase(p_ctrl, start_address, num_blocks);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 #else
 
@@ -662,7 +683,7 @@ fsp_err_t R_FLASH_HP_BlankCheck (flash_ctrl_t * const p_api_ctrl,
 #if (FLASH_HP_CFG_PARAM_CHECKING_ENABLE == 1)
 
     /* Check parameters. If failure return error */
-    err = r_flash_hp_write_bc_parameter_checking(p_ctrl, address, num_bytes, false);
+    err = r_flash_hp_write_bc_parameter_checking(p_ctrl, address & ~BSP_FEATURE_TZ_NS_OFFSET, num_bytes, false);
     FSP_ERROR_RETURN((err == FSP_SUCCESS), err);
 #endif
 
@@ -670,7 +691,7 @@ fsp_err_t R_FLASH_HP_BlankCheck (flash_ctrl_t * const p_api_ctrl,
 
     /* Is this a request to Blank check Code Flash? */
     /* If the address is code flash check if the region is blank. If not blank return error. */
-    if (address < BSP_FEATURE_FLASH_DATA_FLASH_START)
+    if ((address & ~BSP_FEATURE_TZ_NS_OFFSET) < BSP_FEATURE_FLASH_DATA_FLASH_START)
     {
         /* Blank checking for Code Flash does not require any FCU operations. The specified address area
          * can simply be checked for non 0xFF. */
@@ -1361,6 +1382,30 @@ static fsp_err_t flash_hp_cf_write (flash_hp_instance_ctrl_t * const p_ctrl)
  #if (BSP_FEATURE_FLASH_HP_SUPPORTS_DUAL_BANK == 1)
 
 /*******************************************************************************************************************//**
+ * This function checks the security attribution of the Bank Select Register BANKSWP bits and returns the appropriate
+ * register address according to the configured attribution: BANKSEL for nonsecure attribution
+ * and BANKSEL_SEC for secure attribution.
+ *
+ * The security attribution of the BANKSWP bits must be read from the BANKSEL_SEL register rather than determined
+ * from compile time macros in case another program (eg. a bootloader) has modified the configuration area.
+ *
+ * @retval     uint32_t       Address of bank select register bankswap setting
+ **********************************************************************************************************************/
+static uint32_t flash_hp_banksel_bankswp_addr_get (void)
+{
+    volatile uint32_t * const flash_hp_banksel_sel = (uint32_t *) FLASH_HP_BANK_MODE_SECURITY_ATTRIBUTION;
+
+    /* Check if non-secure attribution is selected */
+    if ((*flash_hp_banksel_sel & FLASH_HP_PRV_BANKSEL_BANKSWP_MASK) == FLASH_HP_PRV_BANKSEL_BANKSWP_MASK)
+    {
+        return FLASH_HP_FCU_CONFIG_SET_BANK_MODE;
+    }
+
+    /* Secure attribution selected, return address of secure register */
+    return FLASH_HP_FCU_CONFIG_SET_BANK_MODE_SEC;
+}
+
+/*******************************************************************************************************************//**
  * This function swaps which flash bank will be used to boot from after the next reset.
  * @param[in]  p_ctrl                Flash control block
  * @retval     FSP_SUCCESS           The write started successfully.
@@ -1373,16 +1418,19 @@ static fsp_err_t flash_hp_bank_swap (flash_hp_instance_ctrl_t * const p_ctrl)
 {
     fsp_err_t err = FSP_SUCCESS;
 
+    uint32_t const flash_hp_banksel = flash_hp_banksel_bankswp_addr_get();
+
     /* Unused bits should be written as 1. */
     g_configuration_area_data[0] =
-        (uint16_t) ((~FLASH_HP_PRV_BANKSEL_BANKSWP_MASK) | (~(FLASH_HP_PRV_BANKSEL_BANKSWP_MASK & *flash_hp_banksel)));
+        (uint16_t) ((~FLASH_HP_PRV_BANKSEL_BANKSWP_MASK) |
+                    (~(FLASH_HP_PRV_BANKSEL_BANKSWP_MASK & *((volatile uint32_t *) flash_hp_banksel))));
 
     memset(&g_configuration_area_data[1], UINT8_MAX, 7 * sizeof(uint16_t));
 
     flash_hp_enter_pe_cf_mode(p_ctrl);
 
     /* Write the configuration area to the access/startup region. */
-    err = flash_hp_configuration_area_write(p_ctrl, FLASH_HP_FCU_CONFIG_SET_BANK_MODE);
+    err = flash_hp_configuration_area_write(p_ctrl, flash_hp_banksel);
 
     err = flash_hp_check_errors(err, 0, FSP_ERR_WRITE_FAILED);
 
@@ -1987,6 +2035,11 @@ static fsp_err_t flash_hp_pe_mode_exit (void)
 #endif
 
         R_BSP_FlashCacheEnable();
+#if defined(RENESAS_CORTEX_M85)
+
+        /* Invalidate I-Cache after programming code flash. */
+        SCB_InvalidateICache();
+#endif
     }
 
 #if BSP_FEATURE_BSP_HAS_CODE_SYSTEM_CACHE

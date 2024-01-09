@@ -56,15 +56,19 @@
 #define ECC_384_SIGNATURE_R_LENGTH_WORDS                       (12U)
 #define ECC_384_SIGNATURE_S_LENGTH_WORDS                       (12U)
 
+/* ECC P-521 */
+#define ECC_521_PRIVATE_KEY_LENGTH_BITS                        (521U)
+#define ECC_521_PRIVATE_KEY_LENGTH_WORDS                       (20U)
+
 /* SCE based wrapped keys are at most 20/32 bytes larger than corresponding plain private keys */
 #define HW_SCE_ECC_WRAPPED_KEY_ADJUST(x)          ((x) + ((HW_SCE_PRIVATE_KEY_WRAPPING_WORD_SIZE) * 4))
 
 /* Function pointer declarations */
-#if BSP_FEATURE_CRYPTO_HAS_SCE9 || BSP_FEATURE_CRYPTO_HAS_SCE7
+#if BSP_FEATURE_CRYPTO_HAS_SCE9 || BSP_FEATURE_CRYPTO_HAS_SCE7 || BSP_FEATURE_CRYPTO_HAS_RSIP7
  #define ECC_PUBLIC_KEY_SIZE_BYTES(curve_size)    (curve_size * 2 + 20U)
 typedef fsp_err_t (* hw_sce_ecc_scalarmultiplication_t)(const uint32_t * InData_CurveType, const uint32_t * InData_Cmd,
                                                         const uint32_t * InData_K, const uint32_t * InData_P,
-                                                        uint32_t * OutData_R);
+                                                        const uint32_t * Domain_Param, uint32_t * OutData_R);
 #else
 typedef fsp_err_t (* hw_sce_ecc_scalarmultiplication_t)(const uint32_t * InData_DomainParam, const uint32_t * InData_K,
                                                         const uint32_t * InData_P, uint32_t * OutData_R);
@@ -72,7 +76,7 @@ typedef fsp_err_t (* hw_sce_ecc_scalarmultiplication_t)(const uint32_t * InData_
 typedef fsp_err_t (* hw_sce_ecc_generatekey_t)(const uint32_t * InData_DomainParam, const uint32_t * InData_G,
                                                uint32_t * OutData_PubKey, uint32_t * OutData_PrivKey);
 
-typedef fsp_err_t (* hw_sce_ecc_generatesign_t)(const uint32_t * InData_DomainParam, const uint32_t * InData_G,
+typedef fsp_err_t (* hw_sce_ecc_generatesign_t)(const uint32_t * InData_CurveType, const uint32_t * InData_G,
                                                 const uint32_t * InData_PrivKey, const uint32_t * InData_MsgDgst,
                                                 uint32_t * OutData_R, uint32_t * OutData_S);
 
@@ -91,7 +95,7 @@ fsp_err_t HW_SCE_ECC_256GenerateKey(const uint32_t * InData_DomainParam,
                                     uint32_t       * OutData_PubKey,
                                     uint32_t       * OutData_PrivKey);
 
-fsp_err_t HW_SCE_ECC_256GenerateSign(const uint32_t * InData_DomainParam,
+fsp_err_t HW_SCE_ECC_256GenerateSign(const uint32_t * InData_CurveType,
                                      const uint32_t * InData_G,
                                      const uint32_t * InData_PrivKey,
                                      const uint32_t * InData_MsgDgst,
@@ -127,6 +131,7 @@ fsp_err_t HW_SCE_ECC_256WrappedScalarMultiplication(const uint32_t * InData_Curv
                                                     const uint32_t * InData_Cmd,
                                                     const uint32_t * InData_KeyIndex,
                                                     const uint32_t * InData_P,
+                                                    const uint32_t * Domain_Param,
                                                     uint32_t       * OutData_R);
 
 /* ECC - 384 HW Procedure definitions */
@@ -140,7 +145,7 @@ fsp_err_t HW_SCE_ECC_384GenerateKey(const uint32_t * InData_DomainParam,
                                     uint32_t       * OutData_PubKey,
                                     uint32_t       * OutData_PrivKey);
 
-fsp_err_t HW_SCE_ECC_384GenerateSign(const uint32_t * InData_DomainParam,
+fsp_err_t HW_SCE_ECC_384GenerateSign(const uint32_t * InData_CurveType,
                                      const uint32_t * InData_G,
                                      const uint32_t * InData_PrivKey,
                                      const uint32_t * InData_MsgDgst,
@@ -175,7 +180,37 @@ fsp_err_t HW_SCE_ECC_384WrappedScalarMultiplication(const uint32_t * InData_Curv
                                                     const uint32_t * InData_Cmd,
                                                     const uint32_t * InData_KeyIndex,
                                                     const uint32_t * InData_P,
+                                                    const uint32_t * Domain_Param,
                                                     uint32_t       * OutData_R);
+#if BSP_FEATURE_CRYPTO_HAS_RSIP7
+fsp_err_t HW_SCE_ECC_521GenerateSign(const uint32_t * InData_CurveType,
+                                     const uint32_t * InData_G,
+                                     const uint32_t * InData_PrivKey,
+                                     const uint32_t * InData_MsgDgst,
+                                     uint32_t       * OutData_R,
+                                     uint32_t       * OutData_S);
+
+fsp_err_t HW_SCE_ECC_521VerifySign(const uint32_t * InData_DomainParam,
+                                   const uint32_t * InData_G,
+                                   const uint32_t * InData_PubKey,
+                                   const uint32_t * InData_MsgDgst,
+                                   const uint32_t * InData_R,
+                                   const uint32_t * InData_S);
+
+fsp_err_t HW_SCE_ECC_521HrkGenerateSign(const uint32_t * InData_DomainParam,
+                                        const uint32_t * InData_G,
+                                        const uint32_t * InData_KeyIndex,
+                                        const uint32_t * InData_MsgDgst,
+                                        uint32_t       * OutData_R,
+                                        uint32_t       * OutData_S);
+                                   
+fsp_err_t HW_SCE_ECC_521WrappedScalarMultiplication(const uint32_t * InData_CurveType,
+                                                    const uint32_t * InData_Cmd,
+                                                    const uint32_t * InData_KeyIndex,
+                                                    const uint32_t * InData_P,
+                                                    const uint32_t * Domain_Param,
+                                                    uint32_t       * OutData_R);
+#endif
 
 /* ECC - 224 HW Procedure definitions */
 fsp_err_t HW_SCE_ECC_224GenerateSign(const uint32_t * InData_DomainParam,

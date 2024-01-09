@@ -1055,7 +1055,7 @@ fsp_err_t R_GPT_Close (timer_ctrl_t * const p_ctrl)
  * @retval FSP_ERR_INVALID_STATE       The source clock frequnecy is out of the required range for the PDG.
  * @retval FSP_ERR_UNSUPPORTED         This feature is not supported.
  **********************************************************************************************************************/
-fsp_err_t R_GPT_PwmOutputDelayInitialize ()
+fsp_err_t R_GPT_PwmOutputDelayInitialize (void)
 {
 #if 0U != BSP_FEATURE_GPT_ODC_VALID_CHANNEL_MASK && GPT_CFG_OUTPUT_SUPPORT_ENABLE
  #if BSP_FEATURE_GPT_ODC_FRANGE_FREQ_MIN > 0 || GPT_CFG_PARAM_CHECKING_ENABLE
@@ -1341,6 +1341,13 @@ static void gpt_hardware_initialize (gpt_instance_ctrl_t * const p_instance_ctrl
     /* Set the compare match and compare match buffer registers based on previously calculated values. */
     p_instance_ctrl->p_reg->GTCCR[GPT_PRV_GTCCRC] = duty_regs.gtccr_buffer;
     p_instance_ctrl->p_reg->GTCCR[GPT_PRV_GTCCRE] = duty_regs.gtccr_buffer;
+
+    if (p_cfg->mode >= TIMER_MODE_TRIANGLE_WAVE_SYMMETRIC_PWM)
+    {
+        /* Set the double buffer registers for triangle modes. */
+        p_instance_ctrl->p_reg->GTCCR[GPT_PRV_GTCCRD] = duty_regs.gtccr_buffer;
+        p_instance_ctrl->p_reg->GTCCR[GPT_PRV_GTCCRF] = duty_regs.gtccr_buffer;
+    }
 
     /* If the requested duty cycle is 0% or 100%, set this in the registers. */
     gtuddtyc |= duty_regs.omdty << R_GPT0_GTUDDTYC_OADTY_Pos;

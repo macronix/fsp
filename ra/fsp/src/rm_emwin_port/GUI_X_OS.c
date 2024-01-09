@@ -86,7 +86,11 @@ void GUI_X_Delay (int Period)
     /* Wait for the specified number of ticks */
     do
     {
+ #if !defined(BSP_CFG_RTOS_IDLE_SLEEP) || BSP_CFG_RTOS_IDLE_SLEEP
         __WFI();
+ #else
+        R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MICROSECONDS);
+ #endif
     } while ((int) (g_gui_time_ms - time_start) < Period);
 #endif
 }

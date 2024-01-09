@@ -166,11 +166,11 @@ FSP_HEADER
 /* USB clock divider options. */
 #define BSP_CLOCKS_USB_CLOCK_DIV_1       (0)  // Divide USB source clock by 1
 #define BSP_CLOCKS_USB_CLOCK_DIV_2       (1)  // Divide USB source clock by 2
-#define BSP_CLOCKS_USB_CLOCK_DIV_3       (5)  // Divide USB source clock by 3
-#define BSP_CLOCKS_USB_CLOCK_DIV_4       (2)  // Divide USB source clock by 4
-#define BSP_CLOCKS_USB_CLOCK_DIV_5       (6)  // Divide USB source clock by 5
-#define BSP_CLOCKS_USB_CLOCK_DIV_6       (3)  // Divide USB source clock by 6
-#define BSP_CLOCKS_USB_CLOCK_DIV_8       (4)  // Divide USB source clock by 8
+#define BSP_CLOCKS_USB_CLOCK_DIV_3       (2)  // Divide USB source clock by 3
+#define BSP_CLOCKS_USB_CLOCK_DIV_4       (3)  // Divide USB source clock by 4
+#define BSP_CLOCKS_USB_CLOCK_DIV_5       (4)  // Divide USB source clock by 5
+#define BSP_CLOCKS_USB_CLOCK_DIV_6       (5)  // Divide USB source clock by 6
+#define BSP_CLOCKS_USB_CLOCK_DIV_8       (7)  // Divide USB source clock by 8
 
 /* USB60 clock divider options. */
 #define BSP_CLOCKS_USB60_CLOCK_DIV_1     (0)  // Divide USB60 source clock by 1
@@ -260,15 +260,6 @@ FSP_HEADER
 #define BSP_CLOCKS_I3C_CLOCK_DIV_6       (3)  // Divide I3C source clock by 6
 #define BSP_CLOCKS_I3C_CLOCK_DIV_8       (4)  // Divide I3C source clock by 8
 
-/* ADC clock divider options. */
-#define BSP_CLOCKS_ADC_CLOCK_DIV_1       (0)  // Divide ADC source clock by 1
-#define BSP_CLOCKS_ADC_CLOCK_DIV_2       (1)  // Divide ADC source clock by 2
-#define BSP_CLOCKS_ADC_CLOCK_DIV_3       (5)  // Divide ADC source clock by 3
-#define BSP_CLOCKS_ADC_CLOCK_DIV_4       (2)  // Divide ADC source clock by 4
-#define BSP_CLOCKS_ADC_CLOCK_DIV_5       (6)  // Divide ADC source clock by 5
-#define BSP_CLOCKS_ADC_CLOCK_DIV_6       (3)  // Divide ADC source clock by 6
-#define BSP_CLOCKS_ADC_CLOCK_DIV_8       (4)  // Divide ADC source clock by 8
-
 /* PLL divider options. */
 #define BSP_CLOCKS_PLL_DIV_1             (0)
 #define BSP_CLOCKS_PLL_DIV_2             (1)
@@ -290,7 +281,7 @@ FSP_HEADER
  * X=Integer portion of the multiplier.
  * Y=Fractional portion of the multiplier. (not used for this PLLCCR type)
  */
- #define BSP_CLOCKS_PLL_MUL(X, Y)    ((X) -BSP_PRV_CLOCKS_PLL_MUL_INT_OFFSET)
+ #define BSP_CLOCKS_PLL_MUL(X, Y)    (X - BSP_PRV_CLOCKS_PLL_MUL_INT_OFFSET)
 
 #elif (3U != BSP_FEATURE_CGC_PLLCCR_TYPE)
 
@@ -1113,6 +1104,19 @@ void bsp_prv_clock_set(uint32_t clock, uint32_t sckdivcr, uint8_t sckdivcr2);
 /* RTC Initialization */
 #if BSP_FEATURE_RTC_IS_AVAILABLE || BSP_FEATURE_RTC_HAS_TCEN || BSP_FEATURE_SYSC_HAS_VBTICTLR
 void R_BSP_Init_RTC(void);
+
+#endif
+
+#if BSP_CFG_SLEEP_MODE_DELAY_ENABLE || BSP_CFG_RTOS_SLEEP_MODE_DELAY_ENABLE
+bool bsp_prv_clock_prepare_pre_sleep(void);
+void bsp_prv_clock_prepare_post_sleep(bool cpuclk_slowed);
+
+#endif
+
+/* The public function is used to get state or initialize the sub-clock. */
+#if BSP_FEATURE_RTC_IS_IRTC
+fsp_err_t R_BSP_SubclockStatusGet();
+fsp_err_t R_BSP_SubclockInitialize();
 
 #endif
 

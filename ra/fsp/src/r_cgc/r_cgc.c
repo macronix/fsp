@@ -28,136 +28,118 @@
  * Macro definitions
  **********************************************************************************************************************/
 
-#if BSP_TZ_NONSECURE_BUILD
- #if defined(BSP_CFG_CLOCKS_SECURE) && BSP_CFG_CLOCKS_SECURE
-  #error "The CGC registers are only accessible in the TrustZone Secure Project."
- #endif
-#endif
-
 /* "CGC" in ASCII, used to determine if the module is open. */
-#define CGC_OPEN                                 (0x00434743U)
+#define CGC_OPEN                              (0x00434743U)
 
-#define CGC_PRV_SUBCLOCK_LOCO_HZ                 (32768U)
+#define CGC_PRV_SUBCLOCK_LOCO_HZ              (32768U)
 
-#define CGC_PRV_OSTDCR_OSC_STOP_ENABLE           (0x81U)
+#define CGC_PRV_OSTDCR_OSC_STOP_ENABLE        (0x81U)
 
 #if 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
 /* PLLMULNF in PLLCCR is 2 bits wide. */
- #define CGC_PRV_PLLCCR_PLLMULNF_MASK            (0x3U)
+ #define CGC_PRV_PLLCCR_PLLMULNF_MASK         (0x3U)
 
 /* PLLMULNF in PLLCCR starts at bit 6. */
- #define CGC_PRV_PLLCCR_PLLMULNF_BIT             (6U)
+ #define CGC_PRV_PLLCCR_PLLMULNF_BIT          (6U)
 
 /* PLLMUL in PLLCCR is 8 bits wide. */
- #define CGC_PRV_PLLCCR_PLLMUL_MASK              (0xFFU)
+ #define CGC_PRV_PLLCCR_PLLMUL_MASK           (0xFFU)
 #elif 4U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
 /* PLLMUL in PLLCCR is 8 bits wide. */
- #define CGC_PRV_PLLCCR_PLLMUL_MASK              (0xFFU)
+ #define CGC_PRV_PLLCCR_PLLMUL_MASK           (0xFFU)
+
+/* BIT 2 in PLLCCR is 1 by default */
+ #define CGC_PRV_PLLCCR_PLLMUL_DEFAULT_BIT    (0x04U)
 #else
 
 /* PLLMUL in PLLCCR is 6 bits wide. */
- #define CGC_PRV_PLLCCR_PLLMUL_MASK              (0x3FU)
+ #define CGC_PRV_PLLCCR_PLLMUL_MASK           (0x3FU)
 #endif
 
 /* PLLMUL in PLLCCR starts at bit 8. */
-#define CGC_PRV_PLLCCR_PLLMUL_BIT                (8U)
+#define CGC_PRV_PLLCCR_PLLMUL_BIT             (8U)
 
 /* PLSRCSEL in PLLCCR starts at bit 4. */
-#define CGC_PRV_PLLCCR_PLSRCSEL_BIT              (4U)
+#define CGC_PRV_PLLCCR_PLSRCSEL_BIT           (4U)
 
 /* PLSET in PLLCCR starts at bit 6. */
-#define CGC_PRV_PLLCCR_PLSET_BIT                 (6U)
+#define CGC_PRV_PLLCCR_PLSET_BIT              (6U)
 
 /* PLLMUL in PLLCCR2 is 5 bits wide. */
-#define CGC_PRV_PLLCCR2_PLLMUL_MASK              (0x1FU)
+#define CGC_PRV_PLLCCR2_PLLMUL_MASK           (0x1FU)
 
 /* PLODIV in PLLCCR2 starts at bit 6. */
-#define CGC_PRV_PLLCCR2_PLODIV_BIT               (6U)
+#define CGC_PRV_PLLCCR2_PLODIV_BIT            (6U)
 
 /* CKODIV in CKOCR starts at bit 4. */
-#define CGC_PRV_CKOCR_CKODIV_BIT                 (4)
+#define CGC_PRV_CKOCR_CKODIV_BIT              (4)
 
 /* PLODIVx in PLLCCR2 are 4 bits wide. */
-#define CGC_PRV_PLLCCR2_PLODIVX_MASK             (0xFU)
+#define CGC_PRV_PLLCCR2_PLODIVX_MASK          (0xFU)
 
 /* PLODIVP in PLLCCR2 starts at bit 0. */
-#define CGC_PRV_PLLCCR2_PLODIVP_BIT              (0U)
+#define CGC_PRV_PLLCCR2_PLODIVP_BIT           (0U)
 
 /* PLODIVP in PLLCCR2 starts at bit 4. */
-#define CGC_PRV_PLLCCR2_PLODIVQ_BIT              (4U)
+#define CGC_PRV_PLLCCR2_PLODIVQ_BIT           (4U)
 
 /* PLODIVP in PLLCCR2 starts at bit 8. */
-#define CGC_PRV_PLLCCR2_PLODIVR_BIT              (8U)
+#define CGC_PRV_PLLCCR2_PLODIVR_BIT           (8U)
 
 #if 4U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
 /* Bit-mask of values that must be 1 for PLLCCR type 4. */
- #define CGC_PRV_PLLCCR_RESET_VALUE              (0x04U)
+ #define CGC_PRV_PLLCCR_RESET_VALUE           (0x04U)
 #endif
 
 #if BSP_PRV_PLL_SUPPORTED
  #if BSP_PRV_PLL2_SUPPORTED
-  #define CGC_PRV_NUM_CLOCKS                     ((uint8_t) CGC_CLOCK_PLL2 + 1U)
+  #define CGC_PRV_NUM_CLOCKS                  ((uint8_t) CGC_CLOCK_PLL2 + 1U)
  #else
-  #define CGC_PRV_NUM_CLOCKS                     ((uint8_t) CGC_CLOCK_PLL + 1U)
+  #define CGC_PRV_NUM_CLOCKS                  ((uint8_t) CGC_CLOCK_PLL + 1U)
  #endif
 #else
- #define CGC_PRV_NUM_CLOCKS                      ((uint8_t) CGC_CLOCK_SUBCLOCK + 1U)
+ #define CGC_PRV_NUM_CLOCKS                   ((uint8_t) CGC_CLOCK_SUBCLOCK + 1U)
 #endif
 
 /* Mask used to isolate dividers for ICLK and FCLK. */
-#define CGC_PRV_SCKDIVCR_ICLK_FCLK_MASK          (0x77000000U)
+#define CGC_PRV_SCKDIVCR_ICLK_FCLK_MASK       (0x77000000U)
 
-#define CGC_PRV_HOCOCR                           ((uint8_t *) &R_SYSTEM->HOCOCR)
-#define CGC_PRV_MOCOCR                           ((uint8_t *) &R_SYSTEM->MOCOCR)
-#define CGC_PRV_LOCOCR                           ((uint8_t *) &R_SYSTEM->LOCOCR)
-#define CGC_PRV_MOSCCR                           ((uint8_t *) &R_SYSTEM->MOSCCR)
-#define CGC_PRV_SOSCCR                           ((uint8_t *) &R_SYSTEM->SOSCCR)
-#define CGC_PRV_PLLCR                            ((uint8_t *) &R_SYSTEM->PLLCR)
-#define CGC_PRV_PLL2CR                           ((uint8_t *) &R_SYSTEM->PLL2CR)
+#define CGC_PRV_HOCOCR                        ((uint8_t *) &R_SYSTEM->HOCOCR)
+#define CGC_PRV_MOCOCR                        ((uint8_t *) &R_SYSTEM->MOCOCR)
+#define CGC_PRV_LOCOCR                        ((uint8_t *) &R_SYSTEM->LOCOCR)
+#define CGC_PRV_MOSCCR                        ((uint8_t *) &R_SYSTEM->MOSCCR)
+#define CGC_PRV_SOSCCR                        ((uint8_t *) &R_SYSTEM->SOSCCR)
+#define CGC_PRV_PLLCR                         ((uint8_t *) &R_SYSTEM->PLLCR)
+#define CGC_PRV_PLL2CR                        ((uint8_t *) &R_SYSTEM->PLL2CR)
 
 /* The closest supported power mode to use when exiting low speed or low voltage mode. */
 #if BSP_FEATURE_CGC_MIDDLE_SPEED_MAX_FREQ_HZ > 0U
- #define CGC_PRV_EXIT_LOW_SPEED_MODE             (BSP_PRV_OPERATING_MODE_MIDDLE_SPEED)
+ #define CGC_PRV_EXIT_LOW_SPEED_MODE          (BSP_PRV_OPERATING_MODE_MIDDLE_SPEED)
 #else
- #define CGC_PRV_EXIT_LOW_SPEED_MODE             (BSP_PRV_OPERATING_MODE_HIGH_SPEED)
+ #define CGC_PRV_EXIT_LOW_SPEED_MODE          (BSP_PRV_OPERATING_MODE_HIGH_SPEED)
 #endif
 
 #if BSP_FEATURE_CGC_LOW_VOLTAGE_MAX_FREQ_HZ > 0U
- #define CGC_PRV_USE_LOW_VOLTAGE_MODE            (CGC_CFG_USE_LOW_VOLTAGE_MODE)
+ #define CGC_PRV_USE_LOW_VOLTAGE_MODE         (CGC_CFG_USE_LOW_VOLTAGE_MODE)
 #else
- #define CGC_PRV_USE_LOW_VOLTAGE_MODE            (0)
+ #define CGC_PRV_USE_LOW_VOLTAGE_MODE         (0)
 #endif
-
-/* Specifications for PLL on MCUs with PLLCCR. */
-#if 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
- #define CGC_PRV_PLLCCR_PLL_MIN_HZ               (40000000U)
-#elif 4U == BSP_FEATURE_CGC_PLLCCR_TYPE
- #define CGC_PRV_PLLCCR_PLL_MIN_HZ               (11000000U)
-#else
- #define CGC_PRV_PLLCCR_PLL_MIN_HZ               (120000000U)
-#endif
-
-/* Specifications for PLL on MCUs with PLLCCR2. */
-#define CGC_PRV_PLLCCR2_PLL_MIN_HZ               (24000000U)
-#define CGC_PRV_PLLCCR2_PLL_MULTIPLIED_MAX_HZ    (128000000U)
-#define CGC_PRV_PLLCCR2_PLL_SRC_MIN_HZ           (4000000U)
-#define CGC_PRV_PLLCCR2_PLL_SRC_MAX_HZ           (12500000U)
 
 /* Scaling factor for calculating the multiplier for PLLCCR type 3. */
-#define CGC_PRV_PLL_MUL_FACTOR                   (6U)
+#define CGC_PRV_PLL_MUL_FACTOR                (6U)
 
 /* Scaling factor for PLLMUL values; using scaling of 6. */
-#define CGC_PRV_PLL_MUL_COEFF                    (6U)
-#define CGC_PRV_PLL_MUL_NF_COEFF                 (2U)
+#define CGC_PRV_PLL_MUL_COEFF                 (6U)
+#define CGC_PRV_PLL_MUL_NF_COEFF              (2U)
 
 /* Mask of the uppermost bit of all dividers in SCKDIVCR that are valid when oscillation stop detection is enabled. */
-#define CGC_PRV_SCKDIVCR_UPPER_BIT               (BSP_PRV_SCKDIVCR_MASK & 0x44444444U)
+#define CGC_PRV_SCKDIVCR_UPPER_BIT            (BSP_PRV_SCKDIVCR_MASK & 0x44444444U)
 
 /* Offset factor to convert PLL MUL values to register values. */
-#define CGC_PRV_PLLCCR_TYPE4_PLLMUL_OFFSET       (574U)
+#define CGC_PRV_PLLCCR_TYPE4_PLLMUL_OFFSET    (574U)
 
 /***********************************************************************************************************************
  * Typedef definitions
@@ -180,9 +162,14 @@ typedef enum e_cgc_prv_change
 /* Private enumeration for PLL output selection. */
 typedef enum e_cgc_prv_pllout
 {
-    CGC_PRV_PLLOUT_P = 0,              ///< Primary clock output for single output PLLs or P clock output for multi-output PLL.
-    CGC_PRV_PLLOUT_Q = 1,              ///< Q clock output for multi-output PLL.
-    CGC_PRV_PLLOUT_R = 2,              ///< R clock output for multi-output PLL.
+    CGC_PRV_PLLOUT_PLL1   = 0,         ///< Primary clock output for single output PLL1.
+    CGC_PRV_PLLOUT_PLL1_P = 0,         ///< P clock output for multi-output PLL1.
+    CGC_PRV_PLLOUT_PLL1_Q = 1,         ///< Q clock output for multi-output PLL1.
+    CGC_PRV_PLLOUT_PLL1_R = 2,         ///< R clock output for multi-output PLL1.
+    CGC_PRV_PLLOUT_PLL2   = 8,         ///< Primary clock output for single output PLL2.
+    CGC_PRV_PLLOUT_PLL2_P = 8,         ///< P clock output for multi-output PLL2.
+    CGC_PRV_PLLOUT_PLL2_Q = 9,         ///< Q clock output for multi-output PLL2.
+    CGC_PRV_PLLOUT_PLL2_R = 10,        ///< R clock output for multi-output PLL2.
 } cgc_prv_pllout_t;
 
 #if defined(__ARMCC_VERSION) || defined(__ICCARM__)
@@ -194,14 +181,24 @@ typedef BSP_CMSE_NONSECURE_CALL void (*volatile cgc_prv_ns_callback)(cgc_callbac
 /***********************************************************************************************************************
  * Private function prototypes
  **********************************************************************************************************************/
-static bool                  r_cgc_low_speed_or_voltage_mode_possible(uint32_t sckdivcr, uint8_t ostdcr);
-static fsp_err_t             r_cgc_clock_check(cgc_clock_t const clock_source);
-static bool                  r_cgc_stabilization_check(cgc_clock_t clock, cgc_prv_clock_state_t status);
-static void                  r_cgc_nmi_internal_callback(bsp_grp_irq_t irq);
+static bool      r_cgc_low_speed_or_voltage_mode_possible(uint32_t sckdivcr, uint8_t ostdcr);
+static fsp_err_t r_cgc_clock_check(cgc_clock_t const clock_source);
+static bool      r_cgc_stabilization_check(cgc_clock_t clock, cgc_prv_clock_state_t status);
+
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
+static void r_cgc_nmi_internal_callback(bsp_grp_irq_t irq);
+
+#endif
 static void                  r_cgc_clock_change(cgc_clock_t clock, cgc_clock_change_t state);
 static cgc_prv_clock_state_t r_cgc_clock_run_state_get(cgc_clock_t clock);
 static void                  r_cgc_post_change(cgc_prv_change_t change);
 static void                  r_cgc_pre_change(cgc_prv_change_t change);
+
+#if BSP_FEATURE_CGC_HAS_OSTDCSE
+static fsp_err_t r_cgc_open_irq_cfg(cgc_instance_ctrl_t * const p_instance_ctrl, cgc_extended_cfg_t * const p_extend);
+static void      r_cgc_disable_irq(IRQn_Type irq);
+
+#endif
 
 #if !BSP_CFG_USE_LOW_VOLTAGE_MODE
 
@@ -252,11 +249,19 @@ static fsp_err_t r_cgc_pllccr_pll_hz_calculate(cgc_pll_cfg_t const * const p_pll
 #endif
 
 /***********************************************************************************************************************
+ * ISR prototypes
+ **********************************************************************************************************************/
+void cgc_mostd_isr(void);
+void cgc_sostd_isr(void);
+
+/***********************************************************************************************************************
  * Private global variables
  **********************************************************************************************************************/
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
 
 /** Global pointer to control structure for use by the NMI callback.  */
 static cgc_instance_ctrl_t * gp_cgc_ctrl = NULL;
+#endif
 
 /* This array stores the address of the register containing the stop bit for each clock. All of these registers are
  * 8-bit registers and only bit 0 is valid.  All other bits are read as 0 and should be written to 0.  Bit 0 of each
@@ -342,12 +347,24 @@ fsp_err_t R_CGC_Open (cgc_ctrl_t * const p_ctrl, cgc_cfg_t const * const p_cfg)
     FSP_ERROR_RETURN(CGC_OPEN != p_instance_ctrl->open, FSP_ERR_ALREADY_OPEN);
 #endif
 
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
+
     /* Store the control structure in a private global variable so the oscillation stop detection function can be
      * called from the NMI callback. */
-    gp_cgc_ctrl                        = p_instance_ctrl;
+    gp_cgc_ctrl = p_instance_ctrl;
+#endif
     p_instance_ctrl->p_callback        = p_cfg->p_callback;
     p_instance_ctrl->p_context         = p_cfg->p_context;
     p_instance_ctrl->p_callback_memory = NULL;
+
+#if BSP_FEATURE_CGC_HAS_OSTDCSE
+    p_instance_ctrl->p_extend = p_cfg->p_extend;
+    fsp_err_t err = FSP_SUCCESS;
+
+    /* Configure and enable interrupts. */
+    err = r_cgc_open_irq_cfg(p_instance_ctrl, (cgc_extended_cfg_t *) p_instance_ctrl->p_extend);
+    FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
+#endif
 
     /* Mark the module as open so other APIs can be used. */
     p_instance_ctrl->open = CGC_OPEN;
@@ -470,16 +487,29 @@ fsp_err_t R_CGC_ClocksCfg (cgc_ctrl_t * const p_ctrl, cgc_clocks_cfg_t const * c
     if (CGC_CLOCK_CHANGE_START == p_clock_cfg->pll_state)
     {
  #if 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
-        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg, CGC_CLOCK_PLL, CGC_PRV_PLLOUT_P, &pll_hz, &pllccr);
+        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg,
+                                            CGC_CLOCK_PLL,
+                                            CGC_PRV_PLLOUT_PLL1_P,
+                                            &pll_hz,
+                                            &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
-        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg, CGC_CLOCK_PLL, CGC_PRV_PLLOUT_Q, &pll_hz, &pllccr);
+        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg,
+                                            CGC_CLOCK_PLL,
+                                            CGC_PRV_PLLOUT_PLL1_Q,
+                                            &pll_hz,
+                                            &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
-        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg, CGC_CLOCK_PLL, CGC_PRV_PLLOUT_R, &pll_hz, &pllccr);
+        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg,
+                                            CGC_CLOCK_PLL,
+                                            CGC_PRV_PLLOUT_PLL1_R,
+                                            &pll_hz,
+                                            &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #else
-        err = r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg, CGC_CLOCK_PLL, CGC_PRV_PLLOUT_P, &pll_hz, &pllccr);
+        err =
+            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll_cfg, CGC_CLOCK_PLL, CGC_PRV_PLLOUT_PLL1, &pll_hz, &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #endif
     }
@@ -506,19 +536,35 @@ fsp_err_t R_CGC_ClocksCfg (cgc_ctrl_t * const p_ctrl, cgc_clocks_cfg_t const * c
     {
  #if 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
         err =
-            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg, CGC_CLOCK_PLL2, CGC_PRV_PLLOUT_P, &pll2_hz, &pll2ccr);
+            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg,
+                                          CGC_CLOCK_PLL2,
+                                          CGC_PRV_PLLOUT_PLL2_P,
+                                          &pll2_hz,
+                                          &pll2ccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
         err =
-            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg, CGC_CLOCK_PLL2, CGC_PRV_PLLOUT_Q, &pll2_hz, &pll2ccr);
+            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg,
+                                          CGC_CLOCK_PLL2,
+                                          CGC_PRV_PLLOUT_PLL2_Q,
+                                          &pll2_hz,
+                                          &pll2ccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
         err =
-            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg, CGC_CLOCK_PLL2, CGC_PRV_PLLOUT_R, &pll2_hz, &pll2ccr);
+            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg,
+                                          CGC_CLOCK_PLL2,
+                                          CGC_PRV_PLLOUT_PLL2_R,
+                                          &pll2_hz,
+                                          &pll2ccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #else
         err =
-            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg, CGC_CLOCK_PLL2, CGC_PRV_PLLOUT_P, &pll2_hz, &pll2ccr);
+            r_cgc_pllccr_pll_hz_calculate(&p_clock_cfg->pll2_cfg,
+                                          CGC_CLOCK_PLL2,
+                                          CGC_PRV_PLLOUT_PLL2,
+                                          &pll2_hz,
+                                          &pll2ccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #endif
     }
@@ -591,22 +637,24 @@ fsp_err_t R_CGC_ClocksCfg (cgc_ctrl_t * const p_ctrl, cgc_clocks_cfg_t const * c
         R_SYSTEM->PLLCCR2 = (uint16_t) outdiv;
  #endif
 
+ #if 4U != BSP_FEATURE_CGC_PLLCCR_TYPE
         if (CGC_CLOCK_CHANGE_START == options[p_clock_cfg->pll_cfg.source_clock])
         {
             /* Need to start PLL source clock and let it stabilize before starting PLL. */
             r_cgc_clock_change(p_clock_cfg->pll_cfg.source_clock, CGC_CLOCK_CHANGE_START);
 
- #if BSP_PRV_HOCO_USE_FLL
+  #if BSP_PRV_HOCO_USE_FLL
             if (CGC_CLOCK_HOCO == p_clock_cfg->pll_cfg.source_clock)
             {
                 /* If FLL is enabled and HOCO is turned on an additional stabilization wait is required before
                  * checking the flag and starting the PLL. */
                 R_BSP_SoftwareDelay(BSP_PRV_FLL_STABILIZATION_TIME_US, BSP_DELAY_UNITS_MICROSECONDS);
             }
- #endif
+  #endif
 
             FSP_HARDWARE_REGISTER_WAIT(r_cgc_clock_check(p_clock_cfg->pll_cfg.source_clock), FSP_SUCCESS);
         }
+ #endif
     }
 #endif
 #if BSP_PRV_PLL2_SUPPORTED
@@ -800,17 +848,26 @@ fsp_err_t R_CGC_ClockStart (cgc_ctrl_t * const p_ctrl, cgc_clock_t clock_source,
  #endif
         )
     {
+        cgc_prv_pllout_t pll_instance = CGC_CLOCK_PLL == clock_source ? CGC_PRV_PLLOUT_PLL1 : CGC_PRV_PLLOUT_PLL2;
  #if 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
-        err = r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source, CGC_PRV_PLLOUT_P, &pll_hz, &pllccr);
+        err =
+            r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source,
+                                          (cgc_prv_pllout_t) (CGC_PRV_PLLOUT_PLL1_P | pll_instance), &pll_hz, &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
-        err = r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source, CGC_PRV_PLLOUT_Q, &pll_hz, &pllccr);
+        err =
+            r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source,
+                                          (cgc_prv_pllout_t) (CGC_PRV_PLLOUT_PLL1_Q | pll_instance), &pll_hz, &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
-        err = r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source, CGC_PRV_PLLOUT_R, &pll_hz, &pllccr);
+        err =
+            r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source,
+                                          (cgc_prv_pllout_t) (CGC_PRV_PLLOUT_PLL1_R | pll_instance), &pll_hz, &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #else
-        err = r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source, CGC_PRV_PLLOUT_P, &pll_hz, &pllccr);
+        err =
+            r_cgc_pllccr_pll_hz_calculate(p_pll_cfg, clock_source,
+                                          (cgc_prv_pllout_t) (CGC_PRV_PLLOUT_PLL1 | pll_instance), &pll_hz, &pllccr);
         FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
  #endif
     }
@@ -1106,67 +1163,118 @@ fsp_err_t R_CGC_ClockCheck (cgc_ctrl_t * const p_ctrl, cgc_clock_t clock_source)
  * @retval FSP_ERR_ASSERTION           Invalid input argument.
  * @retval FSP_ERR_NOT_OPEN            Module is not open.
  * @retval FSP_ERR_LOW_VOLTAGE_MODE    Settings not allowed in low voltage mode.
+ * @retval FSP_ERR_UNSUPPORTED         RA2E2 do not support this feature.
  **********************************************************************************************************************/
 fsp_err_t R_CGC_OscStopDetectEnable (cgc_ctrl_t * const p_ctrl)
 {
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
     cgc_instance_ctrl_t * p_instance_ctrl = (cgc_instance_ctrl_t *) p_ctrl;
 
-#if CGC_CFG_PARAM_CHECKING_ENABLE
+ #if CGC_CFG_PARAM_CHECKING_ENABLE
 
     /* Verify p_instance_ctrl is not NULL and the module is open. */
     fsp_err_t err = r_cgc_common_parameter_checking(p_instance_ctrl);
     FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
 
- #if defined(BSP_TZ_NONSECURE_BUILD) && BSP_TZ_NONSECURE_BUILD
+  #if defined(BSP_TZ_NONSECURE_BUILD) && BSP_TZ_NONSECURE_BUILD
 
     /* The NMI must be configured to TrustZone Non-secure in order to be used in a Non-secure project. */
     FSP_ASSERT(0U != (SCB->AIRCR & SCB_AIRCR_BFHFNMINS_Msk));
- #elif defined(BSP_TZ_SECURE_BUILD) && BSP_TZ_SECURE_BUILD
+  #elif defined(BSP_TZ_SECURE_BUILD) && BSP_TZ_SECURE_BUILD
 
     /* The NMI must be configured to TrustZone Secure in order to be used in a Secure project. */
     FSP_ASSERT(0U == (SCB->AIRCR & SCB_AIRCR_BFHFNMINS_Msk));
- #endif
-#else
+  #endif
+ #else
     FSP_PARAMETER_NOT_USED(p_instance_ctrl);
-#endif
+ #endif
 
-    /* Low speed and low voltage mode have divider restrictions when using oscillation stop detection. */
-#if BSP_CFG_USE_LOW_VOLTAGE_MODE
-    FSP_ERROR_RETURN(r_cgc_low_speed_or_voltage_mode_possible(R_SYSTEM->SCKDIVCR, CGC_PRV_OSTDCR_OSC_STOP_ENABLE),
-                     FSP_ERR_LOW_VOLTAGE_MODE);
-#else
-
-    /* When low voltage mode is not used, switch to the next available power mode if currently in low speed mode and
-     * this mode is not supported when oscillation stop is enabled to ensure the operating power control mode remains
-     * in spec. */
-    uint32_t operating_mode = R_SYSTEM->OPCCR_b.OPCM;
-    uint32_t sckdivcr       = R_SYSTEM->SCKDIVCR;
-    if (operating_mode == BSP_PRV_OPERATING_MODE_LOW_SPEED)
+ #if BSP_FEATURE_CGC_HAS_OSTDCSE
+    cgc_extended_cfg_t * p_extend = (cgc_extended_cfg_t *) p_instance_ctrl->p_extend;
+    if (p_extend->ostd_enable)
+ #endif
     {
-        if (!(r_cgc_low_speed_or_voltage_mode_possible(sckdivcr, CGC_PRV_OSTDCR_OSC_STOP_ENABLE)))
+        /* Low speed and low voltage mode have divider restrictions when using oscillation stop detection. */
+ #if BSP_CFG_USE_LOW_VOLTAGE_MODE
+        FSP_ERROR_RETURN(r_cgc_low_speed_or_voltage_mode_possible(R_SYSTEM->SCKDIVCR, CGC_PRV_OSTDCR_OSC_STOP_ENABLE),
+                         FSP_ERR_LOW_VOLTAGE_MODE);
+ #else
+
+        /* When low voltage mode is not used, switch to the next available power mode if currently in low speed mode and
+         * this mode is not supported when oscillation stop is enabled to ensure the operating power control mode remains
+         * in spec. */
+        uint32_t operating_mode = R_SYSTEM->OPCCR_b.OPCM;
+        uint32_t sckdivcr       = R_SYSTEM->SCKDIVCR;
+        if (operating_mode == BSP_PRV_OPERATING_MODE_LOW_SPEED)
         {
-            r_cgc_pre_change(CGC_PRV_CHANGE_LPM);
-            bsp_prv_operating_mode_set(CGC_PRV_EXIT_LOW_SPEED_MODE);
-            r_cgc_post_change(CGC_PRV_CHANGE_LPM);
+            if (!(r_cgc_low_speed_or_voltage_mode_possible(sckdivcr, CGC_PRV_OSTDCR_OSC_STOP_ENABLE)))
+            {
+                r_cgc_pre_change(CGC_PRV_CHANGE_LPM);
+                bsp_prv_operating_mode_set(CGC_PRV_EXIT_LOW_SPEED_MODE);
+                r_cgc_post_change(CGC_PRV_CHANGE_LPM);
+            }
         }
+ #endif
+
+        /* Add callback function to BSP */
+        (void) R_BSP_GroupIrqWrite(BSP_GRP_IRQ_OSC_STOP_DETECT, r_cgc_nmi_internal_callback);
+
+        /* Enable the oscillation stop NMI.  */
+
+        /* Set OSTEN bit to enable NMI on oscillation stop detection. NMIER bits cannot be cleared after reset, so no need
+         * to read-modify-write. */
+        R_ICU->NMIER = R_ICU_NMIER_OSTEN_Msk;
+
+        /* Enable oscillation stop detection */
+        R_BSP_RegisterProtectDisable(BSP_REG_PROTECT_CGC);
+        R_SYSTEM->OSTDCR = CGC_PRV_OSTDCR_OSC_STOP_ENABLE;
     }
-#endif
 
-    /* Add callback function to BSP */
-    (void) R_BSP_GroupIrqWrite(BSP_GRP_IRQ_OSC_STOP_DETECT, r_cgc_nmi_internal_callback);
+ #if BSP_FEATURE_CGC_HAS_OSTDCSE
+    if (p_extend->mostd_enable)
+    {
+        /* Power on peripheral. */
+        R_BSP_MODULE_START(FSP_IP_MOSTD, 0);
 
-    /* Enable the oscillation stop NMI.  */
+        /* Configure Oscillation Stop Detection Time */
 
-    /* Set OSTEN bit to enable NMI on oscillation stop detection. NMIER bits cannot be cleared after reset, so no need
-     * to read-modify-write. */
-    R_ICU->NMIER = R_ICU_NMIER_OSTEN_Msk;
+        /* Oscillation stop detection time =
+         * High speed on-chip oscillator clock (HOCO) cycle × ((value of OSDCCMP) + 1)
+         */
+        uint16_t mostd_detection_en = p_extend->mostd_detection_time - 1;
 
-    /* Enable oscillation stop detection */
-    R_BSP_RegisterProtectDisable(BSP_REG_PROTECT_CGC);
-    R_SYSTEM->OSTDCR = CGC_PRV_OSTDCR_OSC_STOP_ENABLE;
+        /* Start operation of the oscillation stop detector */
+        mostd_detection_en |= R_SYSTEM_MOSTD_OSDCE_Msk;
+        R_SYSTEM->MOSTD     = mostd_detection_en;
+    }
+
+    if (p_extend->sostd_enable)
+    {
+        /* Power on peripheral. */
+        R_BSP_MODULE_START(FSP_IP_SOSTD, 0);
+
+        /* Configure Oscillation Stop Detection Time */
+
+        /* Oscillation stop detection time =
+         * Low-speed on-chip oscillator clock (LOCO) cycle × ((value of OSDCCMP) + 1)
+         */
+        uint16_t sostd_detection_en = p_extend->sostd_detection_time - 1;
+
+        /* Start operation of the oscillation stop detector */
+        sostd_detection_en |= R_SYSTEM_SOSTD_OSDCE_Msk;
+        R_SYSTEM->SOSTD     = sostd_detection_en;
+    }
+
+    /* Enable clock switch when oscillation stop detection occurs */
+    R_SYSTEM->SDADCCKCR_b.OSTDCSE = p_extend->sdadc_b_clock_switch_enable & 0x1U;
+ #endif
     R_BSP_RegisterProtectEnable(BSP_REG_PROTECT_CGC);
 
     return FSP_SUCCESS;
+#else                                  /* Device does not support Oscillation Stop Detection Function */
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+    FSP_RETURN(FSP_ERR_UNSUPPORTED);
+#endif
 }
 
 /*******************************************************************************************************************//**
@@ -1180,12 +1288,14 @@ fsp_err_t R_CGC_OscStopDetectEnable (cgc_ctrl_t * const p_ctrl)
  * @retval FSP_ERR_NOT_OPEN            Module is not open.
  * @retval FSP_ERR_OSC_STOP_DETECTED   The Oscillation stop detect status flag is set. Under this condition it is not
  *                                     possible to disable the Oscillation stop detection function.
+ * @retval FSP_ERR_UNSUPPORTED         RA2E2 do not support this feature.
  **********************************************************************************************************************/
 fsp_err_t R_CGC_OscStopDetectDisable (cgc_ctrl_t * const p_ctrl)
 {
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
     cgc_instance_ctrl_t * p_instance_ctrl = (cgc_instance_ctrl_t *) p_ctrl;
 
-#if CGC_CFG_PARAM_CHECKING_ENABLE
+ #if CGC_CFG_PARAM_CHECKING_ENABLE
 
     /* Verify p_instance_ctrl is not NULL and the module is open. */
     fsp_err_t err = r_cgc_common_parameter_checking(p_instance_ctrl);
@@ -1193,24 +1303,39 @@ fsp_err_t R_CGC_OscStopDetectDisable (cgc_ctrl_t * const p_ctrl)
 
     /* If the oscillation stop flag is set, oscillation stop cannot be disabled. */
     FSP_ERROR_RETURN((R_SYSTEM->OSTDSR != 1U), FSP_ERR_OSC_STOP_DETECTED);
-#else
+ #else
     FSP_PARAMETER_NOT_USED(p_instance_ctrl);
-#endif
+ #endif
 
     /* Disable oscillation stop detection. */
     R_BSP_RegisterProtectDisable(BSP_REG_PROTECT_CGC);
     R_SYSTEM->OSTDCR = 0U;             // disable osc stop detection
+ #if BSP_FEATURE_CGC_HAS_OSTDCSE
+
+    /* Stop operation of the oscillation stop detector */
+    R_SYSTEM->SOSTD_b.OSDCE = 0U;
+    R_SYSTEM->MOSTD_b.OSDCE = 0U;
+
+    /* Power down peripheral. */
+    R_BSP_MODULE_STOP(FSP_IP_SOSTD, 0);
+    R_BSP_MODULE_STOP(FSP_IP_MOSTD, 0);
+ #endif
+
     R_BSP_RegisterProtectEnable(BSP_REG_PROTECT_CGC);
 
-#if !BSP_CFG_USE_LOW_VOLTAGE_MODE
+ #if !BSP_CFG_USE_LOW_VOLTAGE_MODE
 
     /* Attempt to reduce the operating power control mode. */
     r_cgc_pre_change(CGC_PRV_CHANGE_LPM);
     r_cgc_operating_mode_reduce(R_SYSTEM->SCKDIVCR);
     r_cgc_post_change(CGC_PRV_CHANGE_LPM);
-#endif
+ #endif
 
     return FSP_SUCCESS;
+#else                                  /* Device does not support Oscillation Stop Detection Function */
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+    FSP_RETURN(FSP_ERR_UNSUPPORTED);
+#endif
 }
 
 /*******************************************************************************************************************//**
@@ -1233,23 +1358,25 @@ fsp_err_t R_CGC_OscStopDetectDisable (cgc_ctrl_t * const p_ctrl)
  *                                          Main Osc or PLL is set as the system clock. Change the
  *                                          system clock before attempting to clear this bit.
  * @retval FSP_ERR_INVALID_HW_CONDITION     Oscillation stop status was not cleared.  Check preconditions and try again.
+ * @retval FSP_ERR_UNSUPPORTED              RA2E2 do not support this feature.
  **********************************************************************************************************************/
 fsp_err_t R_CGC_OscStopStatusClear (cgc_ctrl_t * const p_ctrl)
 {
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
     cgc_instance_ctrl_t * p_instance_ctrl = (cgc_instance_ctrl_t *) p_ctrl;
 
-#if CGC_CFG_PARAM_CHECKING_ENABLE
+ #if CGC_CFG_PARAM_CHECKING_ENABLE
 
     /* Verify p_instance_ctrl is not NULL and the module is open. */
     fsp_err_t err = r_cgc_common_parameter_checking(p_instance_ctrl);
     FSP_ERROR_RETURN(FSP_SUCCESS == err, err);
-#else
+ #else
     FSP_PARAMETER_NOT_USED(p_instance_ctrl);
-#endif
+ #endif
 
     if (R_SYSTEM->OSTDSR == 1U)
     {
-#if CGC_CFG_PARAM_CHECKING_ENABLE
+ #if CGC_CFG_PARAM_CHECKING_ENABLE
 
         /* Verify the main oscillator is running. */
         FSP_ERROR_RETURN(CGC_PRV_CLOCK_STATE_RUNNING == r_cgc_clock_run_state_get(CGC_CLOCK_MAIN_OSC),
@@ -1258,23 +1385,23 @@ fsp_err_t R_CGC_OscStopStatusClear (cgc_ctrl_t * const p_ctrl)
         /* Get the system clock source */
         cgc_clock_t current_clock = (cgc_clock_t) R_SYSTEM->SCKSCR;
 
- #if BSP_PRV_PLL_SUPPORTED
-  #if 1U == BSP_FEATURE_CGC_PLLCCR_TYPE || 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
+  #if BSP_PRV_PLL_SUPPORTED
+   #if 1U == BSP_FEATURE_CGC_PLLCCR_TYPE || 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
         /* Oscillation stop status cannot be cleared if PLL is the current source clock and main oscillator is the
          * source of the PLL. */
         FSP_ERROR_RETURN(!((CGC_CLOCK_PLL == current_clock) && (0U == R_SYSTEM->PLLCCR_b.PLSRCSEL)),
                          FSP_ERR_OSC_STOP_CLOCK_ACTIVE);
-  #else
+   #else
 
         /* Oscillation stop status cannot be cleared if PLL is the current source clock. */
         FSP_ERROR_RETURN(!(CGC_CLOCK_PLL == current_clock), FSP_ERR_OSC_STOP_CLOCK_ACTIVE);
+   #endif
   #endif
- #endif
 
         /* Oscillation stop status cannot be cleared if the main oscillator is the current source clock. */
         FSP_ERROR_RETURN(!(CGC_CLOCK_MAIN_OSC == current_clock), FSP_ERR_OSC_STOP_CLOCK_ACTIVE);
-#endif
+ #endif
 
         /* Clear the oscillation stop status flag. */
         R_BSP_RegisterProtectDisable(BSP_REG_PROTECT_CGC);
@@ -1292,6 +1419,10 @@ fsp_err_t R_CGC_OscStopStatusClear (cgc_ctrl_t * const p_ctrl)
     }
 
     return FSP_SUCCESS;
+#else                                  /* Device does not support Oscillation Stop Detection Function */
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+    FSP_RETURN(FSP_ERR_UNSUPPORTED);
+#endif
 }
 
 /*******************************************************************************************************************//**
@@ -1364,6 +1495,14 @@ fsp_err_t R_CGC_Close (cgc_ctrl_t * const p_ctrl)
 #endif
 
     p_instance_ctrl->open = 0U;
+
+#if BSP_FEATURE_CGC_HAS_OSTDCSE
+    cgc_extended_cfg_t * p_extend = (cgc_extended_cfg_t *) p_instance_ctrl->p_extend;
+
+    /* Disable interrupts. */
+    r_cgc_disable_irq(p_extend->mostd_irq);
+    r_cgc_disable_irq(p_extend->sostd_irq);
+#endif
 
     /* All done, return success. */
     return FSP_SUCCESS;
@@ -1667,7 +1806,7 @@ static void r_cgc_clock_change (cgc_clock_t clock, cgc_clock_change_t state)
 #if BSP_FEATURE_BSP_HAS_SYRACCR
     if (CGC_CLOCK_LOCO == clock)
     {
-        /* MREF_INTERNAL_003 */
+        /* Wait for the BUSY flag to be cleared (See Section "8.2.4" in the RA8M1 manual R01UH0994EJ0100). */
         FSP_HARDWARE_REGISTER_WAIT(R_SYSTEM->SYRACCR, 0);
     }
 #endif
@@ -1784,7 +1923,8 @@ static fsp_err_t r_cgc_pll_parameter_check (cgc_pll_cfg_t const * const p_pll_cf
    #endif
   #elif 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
-    /* Ensure PLL configuration is supported on this MCU (MREF_INTERNAL_004). */
+    /* Ensure PLL configuration is supported on this MCU,
+     * see Section 8.2.6 "PLL Clock Control Register (PLLCCR)" in the RA8M1 manual R01UH0994EJ0100 */
 
     /* PLLCCR clock source can only be main oscillator or HOCO. */
     FSP_ASSERT((CGC_CLOCK_MAIN_OSC == p_pll_cfg->source_clock) || (CGC_CLOCK_HOCO == p_pll_cfg->source_clock));
@@ -1806,9 +1946,8 @@ static fsp_err_t r_cgc_pll_parameter_check (cgc_pll_cfg_t const * const p_pll_cf
     /* Divider of 2 is the only supported value for PLLCCR. */
     FSP_ASSERT(CGC_PLL_DIV_2 == p_pll_cfg->divider);
 
-    /* PLLCCR multiplier must be between 732 and 781. */
-    FSP_ASSERT(p_pll_cfg->multiplier >= CGC_PLL_MUL_732_0);
-    FSP_ASSERT(p_pll_cfg->multiplier <= CGC_PLL_MUL_781_0);
+    /* PLLCCR multiplier must be 732 or 781. */
+    FSP_ASSERT((p_pll_cfg->multiplier == CGC_PLL_MUL_732_0) || (p_pll_cfg->multiplier == CGC_PLL_MUL_781_0));
   #else
 
     /* Ensure PLL configuration is supported on this MCU (see Section 8.2.3 "PLL Clock Control Register 2 (PLLCCR2)" in
@@ -1862,8 +2001,6 @@ static fsp_err_t r_cgc_pll_hz_calculate (cgc_pll_cfg_t const * const p_pll_cfg,
      * switching to PLL. */
     uint32_t pll_src_freq_hz = BSP_CFG_XTAL_HZ;
  #if 1U == BSP_FEATURE_CGC_PLLCCR_TYPE
-    FSP_PARAMETER_NOT_USED(pll_out);
-
     if (CGC_CLOCK_HOCO == p_pll_cfg->source_clock)
     {
         pll_src_freq_hz = BSP_HOCO_HZ;
@@ -1880,10 +2017,38 @@ static fsp_err_t r_cgc_pll_hz_calculate (cgc_pll_cfg_t const * const p_pll_cfg,
 
   #if CGC_CFG_PARAM_CHECKING_ENABLE
 
-    /* The PLL output frequency must be between 120 MHz and 240 MHz on most MCUs (see Table 9.1 "Specifications of the
-     * clock generation circuit for the clock sources" in the RA6M3 manual R01UH0886EJ0100). */
-    FSP_ASSERT(pll_hz >= CGC_PRV_PLLCCR_PLL_MIN_HZ);
-    FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLLCCR_MAX_HZ);
+    /* Verify that the output PLL frequency is within the specified frequency range for this device. */
+   #if !BSP_FEATURE_CGC_HAS_PLL2
+    FSP_PARAMETER_NOT_USED(pll_out);
+
+    FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_MIN_HZ);
+   #else
+    if (CGC_PRV_PLLOUT_PLL1 == pll_out)
+    {
+        FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_MIN_HZ);
+    }
+    else
+    {
+        FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL2_OUT_MIN_HZ);
+    }
+   #endif
+
+   #if !BSP_FEATURE_CGC_HAS_PLL2
+    FSP_PARAMETER_NOT_USED(pll_out);
+
+    FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL_OUT_MAX_HZ);
+   #else
+    if (CGC_PRV_PLLOUT_PLL1 == pll_out)
+    {
+        FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL_OUT_MAX_HZ);
+    }
+    else
+    {
+        FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL2_OUT_MAX_HZ);
+    }
+   #endif
+  #else
+    FSP_PARAMETER_NOT_USED(pll_out);
   #endif
  #elif 3U == BSP_FEATURE_CGC_PLLCCR_TYPE
     if (CGC_CLOCK_HOCO == p_pll_cfg->source_clock)
@@ -1922,30 +2087,41 @@ static fsp_err_t r_cgc_pll_hz_calculate (cgc_pll_cfg_t const * const p_pll_cfg,
     FSP_ASSERT(vco_hz <= BSP_FEATURE_CGC_PLLCCR_VCO_MAX_HZ);
   #endif
 
+    pll_out = (cgc_prv_pllout_t) ((uint32_t) pll_out & (uint32_t) ~CGC_PRV_PLLOUT_PLL2);
+
     uint32_t pll_hz = 0;
-    if (CGC_PRV_PLLOUT_P == pll_out)
+    if (CGC_PRV_PLLOUT_PLL1_P == pll_out)
     {
         pll_hz = (uint32_t) (vco_hz / p_pll_cfg->out_div_p);
+
+  #if CGC_CFG_PARAM_CHECKING_ENABLE
+        FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_P_MIN_HZ);
+        FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL_OUT_P_MAX_HZ);
+  #endif
     }
-    else if (CGC_PRV_PLLOUT_Q == pll_out)
+    else if (CGC_PRV_PLLOUT_PLL1_Q == pll_out)
     {
         pll_hz = (uint32_t) (vco_hz / p_pll_cfg->out_div_q);
+
+  #if CGC_CFG_PARAM_CHECKING_ENABLE
+        FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_Q_MIN_HZ);
+        FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL_OUT_Q_MAX_HZ);
+  #endif
     }
-    else if (CGC_PRV_PLLOUT_R == pll_out)
+    else if (CGC_PRV_PLLOUT_PLL1_R == pll_out)
     {
         pll_hz = (uint32_t) (vco_hz / p_pll_cfg->out_div_r);
+
+  #if CGC_CFG_PARAM_CHECKING_ENABLE
+        FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_R_MIN_HZ);
+        FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLL_OUT_R_MAX_HZ);
+  #endif
     }
     else
     {
         /* Do nothing */
     }
 
-  #if CGC_CFG_PARAM_CHECKING_ENABLE
-
-    /* The PLL output frequency must be between 40 MHz and 480 MHz for this PLL type. */
-    FSP_ASSERT(pll_hz >= CGC_PRV_PLLCCR_PLL_MIN_HZ);
-    FSP_ASSERT(pll_hz <= BSP_FEATURE_CGC_PLLCCR_MAX_HZ);
-  #endif
  #elif 4U == BSP_FEATURE_CGC_PLLCCR_TYPE
 
     /* Normal P,Q,R outputs are not supported. */
@@ -1980,9 +2156,9 @@ static fsp_err_t r_cgc_pll_hz_calculate (cgc_pll_cfg_t const * const p_pll_cfg,
      *   - The minimum frequency is 24 MHz.
      */
     FSP_ASSERT(
-        (pll_src_freq_hz <= CGC_PRV_PLLCCR2_PLL_SRC_MAX_HZ) && (pll_src_freq_hz >= CGC_PRV_PLLCCR2_PLL_SRC_MIN_HZ));
-    FSP_ASSERT(clock_freq_multiplied <= CGC_PRV_PLLCCR2_PLL_MULTIPLIED_MAX_HZ);
-    FSP_ASSERT(pll_hz >= CGC_PRV_PLLCCR2_PLL_MIN_HZ);
+        (pll_src_freq_hz <= BSP_FEATURE_CGC_PLL_SRC_MAX_HZ) && (pll_src_freq_hz >= BSP_FEATURE_CGC_PLL_SRC_MIN_HZ));
+    FSP_ASSERT(clock_freq_multiplied <= (BSP_FEATURE_CGC_PLL_OUT_MAX_HZ * 2U));
+    FSP_ASSERT(pll_hz >= BSP_FEATURE_CGC_PLL_OUT_MIN_HZ);
   #endif
  #endif
 
@@ -2035,9 +2211,10 @@ static uint32_t r_cgc_pllccr_calculate (cgc_pll_cfg_t const * const p_pll_cfg)
 
     return register_value;
  #elif 4U == BSP_FEATURE_CGC_PLLCCR_TYPE
-    uint8_t pllmul = (uint8_t) ((p_pll_cfg->multiplier >> 1) - CGC_PRV_PLLCCR_TYPE4_PLLMUL_OFFSET);
+    uint8_t pllmul = (uint8_t) (p_pll_cfg->multiplier);
 
-    uint32_t register_value = ((pllmul & CGC_PRV_PLLCCR_PLLMUL_MASK) << CGC_PRV_PLLCCR_PLLMUL_BIT);
+    uint32_t register_value = ((pllmul & CGC_PRV_PLLCCR_PLLMUL_MASK) << CGC_PRV_PLLCCR_PLLMUL_BIT) |
+                              CGC_PRV_PLLCCR_PLLMUL_DEFAULT_BIT;
 
     return register_value;
  #else                                 // 2U == BSP_FEATURE_CGC_PLLCCR_TYPE
@@ -2202,6 +2379,8 @@ static void r_cgc_pll_cfg (uint32_t pll_hz, uint32_t pllccr)
 
 #endif
 
+#if BSP_FEATURE_CGC_OSCILLATON_STOP_DETECT
+
 /*******************************************************************************************************************//**
  * Internal NMI ISR callback which calls the user provided callback passing the context provided by the user.
  *
@@ -2228,10 +2407,10 @@ static void r_cgc_nmi_internal_callback (bsp_grp_irq_t irq)
                 args = *p_args;
             }
 
-            p_args->event     = CGC_EVENT_OSC_STOP_DETECT;
+            p_args->event     = CGC_EVENT_OSC_STOP_DETECT_NMI;
             p_args->p_context = gp_cgc_ctrl->p_context;
 
-#if BSP_TZ_SECURE_BUILD
+ #if BSP_TZ_SECURE_BUILD
 
             /* p_callback can point to a secure function or a non-secure function. */
             if (!cmse_is_nsfptr(gp_cgc_ctrl->p_callback))
@@ -2246,11 +2425,11 @@ static void r_cgc_nmi_internal_callback (bsp_grp_irq_t irq)
                 p_callback(p_args);
             }
 
-#else
+ #else
 
             /* If the project is not Trustzone Secure, then it will never need to change security state in order to call the callback. */
             gp_cgc_ctrl->p_callback(&args);
-#endif
+ #endif
 
             if (NULL != gp_cgc_ctrl->p_callback_memory)
             {
@@ -2259,4 +2438,99 @@ static void r_cgc_nmi_internal_callback (bsp_grp_irq_t irq)
             }
         }
     }
+}
+
+#endif
+
+#if BSP_FEATURE_CGC_HAS_OSTDCSE
+
+/*******************************************************************************************************************//**
+ * Configures interrupts and ensures required interrupts are enabled.
+ *
+ * @param[in]  p_instance_ctrl     Pointer to instance control block
+ * @param[in]  p_extend            Pointer to configuration structure
+ *
+ * @retval  FSP_SUCCESS                All required interrupts enabled.
+ **********************************************************************************************************************/
+static fsp_err_t r_cgc_open_irq_cfg (cgc_instance_ctrl_t * const p_instance_ctrl, cgc_extended_cfg_t * const p_extend)
+{
+    /* Set the interrupt priorities. */
+    if (p_extend->mostd_irq >= 0)
+    {
+        R_BSP_IrqCfgEnable(p_extend->mostd_irq, p_extend->mostd_ipl, p_instance_ctrl);
+    }
+
+    if (p_extend->sostd_irq >= 0)
+    {
+        R_BSP_IrqCfgEnable(p_extend->sostd_irq, p_extend->sostd_ipl, p_instance_ctrl);
+    }
+
+    return FSP_SUCCESS;
+}
+
+/*******************************************************************************************************************//**
+ * Disables an interrupt.
+ *
+ * @param[in]  irq     Interrupt to disable
+ **********************************************************************************************************************/
+static void r_cgc_disable_irq (IRQn_Type irq)
+{
+    if (irq >= 0)
+    {
+        R_BSP_IrqDisable(irq);
+        R_FSP_IsrContextSet(irq, NULL);
+    }
+}
+
+#endif
+
+/*******************************************************************************************************************//**
+ * Clears interrupt flag and calls a callback to notify application of the event.
+ *
+ * @param[in]  event                   Event that triggered the ISR
+ **********************************************************************************************************************/
+static void r_cgc_ostd_common_isr (cgc_event_t event)
+{
+    /* Save context if RTOS is used */
+    FSP_CONTEXT_SAVE
+
+    cgc_instance_ctrl_t * p_instance_ctrl = (cgc_instance_ctrl_t *) R_FSP_IsrContextGet(R_FSP_CurrentIrqGet());
+
+    /* Clear the BSP IRQ Flag     */
+    R_BSP_IrqStatusClear(R_FSP_CurrentIrqGet());
+
+    cgc_callback_args_t args;
+    args.event = event;
+
+    /* Populate the context field. */
+    args.p_context = p_instance_ctrl->p_context;
+
+    /* If a callback was provided, call it with the argument */
+    if (NULL != p_instance_ctrl->p_callback)
+    {
+        p_instance_ctrl->p_callback(&args);
+    }
+
+    /* Restore context if RTOS is used */
+    FSP_CONTEXT_RESTORE
+}
+
+/*******************************************************************************************************************//**
+ * This function implements maskable interrupt handler for Main Oscillation Stop Detection for SDADCCLK Clock
+ *
+ **********************************************************************************************************************/
+void cgc_mostd_isr (void)
+{
+    /* Call common isr handler. */
+    r_cgc_ostd_common_isr(CGC_EVENT_OSC_STOP_DETECT_MAIN_OSC);
+}
+
+/*******************************************************************************************************************//**
+ * This function implements maskable interrupt handler for Sub Clock Oscillation Stop Detection for SDADCCLK Clock
+ *
+ **********************************************************************************************************************/
+void cgc_sostd_isr (void)
+{
+    /* Call common isr handler. */
+    r_cgc_ostd_common_isr(CGC_EVENT_OSC_STOP_DETECT_SUBCLOCK);
 }

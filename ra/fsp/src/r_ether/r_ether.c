@@ -282,6 +282,8 @@ fsp_err_t R_ETHER_Open (ether_ctrl_t * const p_ctrl, ether_cfg_t const * const p
     err = ether_open_param_check(p_instance_ctrl, p_cfg); /** check arguments */
     ETHER_ERROR_RETURN((FSP_SUCCESS == err), err);
 #endif
+    ETHER_ERROR_RETURN((ETHER_OPEN != p_instance_ctrl->open), FSP_ERR_ALREADY_OPEN);
+
     p_ether_extended_cfg = (ether_extended_cfg_t *) p_cfg->p_extend;
 
     /** Make sure this channel exists. */
@@ -331,6 +333,17 @@ fsp_err_t R_ETHER_Open (ether_ctrl_t * const p_ctrl, ether_cfg_t const * const p
     phy_ret = p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_api->open(
         p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_ctrl,
         p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_cfg);
+
+#if !ETHER_PHY_CFG_INIT_PHY_LSI_AUTOMATIC
+
+    /* Initialize the PHY */
+    if (FSP_SUCCESS == phy_ret)
+    {
+        phy_ret = p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_api->chipInit(
+            p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_ctrl,
+            p_instance_ctrl->p_ether_cfg->p_ether_phy_instance->p_cfg);
+    }
+#endif
 
     if (FSP_SUCCESS == phy_ret)
     {
@@ -675,68 +688,18 @@ fsp_err_t R_ETHER_LinkProcess (ether_ctrl_t * const p_ctrl)
 
         if (FSP_SUCCESS == err)
         {
-            /*
-             * The status of the LINK signal became "link-up" even if PHY-LSI did not detect "link-up"
-             * after a reset. To avoid this wrong detection, processing in R_ETHER_LinkProcess has been modified to
-             * clear the flag after link-up is confirmed in R_ETHER_CheckLink_ZC.
-             */
-            p_instance_ctrl->link_change = ETHER_LINK_CHANGE_LINK_DOWN;
-
-            /* Initialize the transmit and receive descriptor */
-            memset(p_ether_extended_cfg->p_rx_descriptors,
-                   0x00,
-                   sizeof(ether_instance_descriptor_t) * p_instance_ctrl->p_ether_cfg->num_rx_descriptors);
-            memset(p_ether_extended_cfg->p_tx_descriptors,
-                   0x00,
-                   sizeof(ether_instance_descriptor_t) * p_instance_ctrl->p_ether_cfg->num_tx_descriptors);
-
-            /* Initialize the Ethernet buffer */
-            ether_init_buffers(p_instance_ctrl);
-
-            p_instance_ctrl->link_establish_status = ETHER_LINK_ESTABLISH_STATUS_UP;
-
-            /*
-             * ETHERC and EDMAC are set after ETHERC and EDMAC are reset in software
-             * and sending and receiving is permitted.
-             */
-            ether_configure_mac(p_instance_ctrl,
-                                p_instance_ctrl->p_ether_cfg->p_mac_address,
-                                ETHER_NO_USE_MAGIC_PACKET_DETECT);
-            err = ether_do_link(p_instance_ctrl, ETHER_NO_USE_MAGIC_PACKET_DETECT);
-
-            if (FSP_SUCCESS == err)
-            {
-                /* If a callback is provided, then call it with callback argument. */
-                if (NULL != p_instance_ctrl->p_callback)
-                {
-                    callback_arg.channel     = p_instance_ctrl->p_ether_cfg->channel;
-                    callback_arg.event       = ETHER_EVENT_LINK_ON;
-                    callback_arg.status_ecsr = 0;
-                    callback_arg.status_eesr = 0;
-                    callback_arg.p_context   = p_instance_ctrl->p_ether_cfg->p_context;
-                    ether_call_callback(p_instance_ctrl, &callback_arg);
-                }
-            }
-            else
-            {
-                /* When PHY auto-negotiation is not completed */
-                p_instance_ctrl->link_establish_status = ETHER_LINK_ESTABLISH_STATUS_DOWN;
-                p_instance_ctrl->link_change           = ETHER_LINK_CHANGE_LINK_UP;
-            }
-        }
-        else
-        {
-            /* no process */
-        }
-
-#elif (ETHER_CFG_USE_LINKSTA == 0)
+#endif
 
         /*
          * The status of the LINK signal became "link-up" even if PHY-LSI did not detect "link-up"
          * after a reset. To avoid this wrong detection, processing in R_ETHER_LinkProcess has been modified to
          * clear the flag after link-up is confirmed in R_ETHER_CheckLink_ZC.
          */
+#if (ETHER_CFG_USE_LINKSTA == 1)
+        p_instance_ctrl->link_change = ETHER_LINK_CHANGE_LINK_DOWN;
+#elif (ETHER_CFG_USE_LINKSTA == 0)
         p_instance_ctrl->link_change = ETHER_LINK_CHANGE_NO_CHANGE;
+#endif
 
         /* Initialize the transmit and receive descriptor */
         memset(p_ether_extended_cfg->p_rx_descriptors,
@@ -779,6 +742,13 @@ fsp_err_t R_ETHER_LinkProcess (ether_ctrl_t * const p_ctrl)
             p_instance_ctrl->link_establish_status = ETHER_LINK_ESTABLISH_STATUS_DOWN;
             p_instance_ctrl->link_change           = ETHER_LINK_CHANGE_LINK_UP;
         }
+
+#if (ETHER_CFG_USE_LINKSTA == 1)
+    }
+    else
+    {
+        /* no process */
+    }
 #endif
     }
     /* When the link is down */
@@ -796,31 +766,8 @@ fsp_err_t R_ETHER_LinkProcess (ether_ctrl_t * const p_ctrl)
         err = ether_link_status_check(p_instance_ctrl);
         if (FSP_ERR_ETHER_ERROR_LINK == err)
         {
-            p_reg_etherc = (R_ETHERC0_Type *) p_instance_ctrl->p_reg_etherc;
+#endif
 
-            /* Disable receive and transmit. */
-            p_reg_etherc->ECMR_b.RE = 0;
-            p_reg_etherc->ECMR_b.TE = 0;
-
-            p_instance_ctrl->link_establish_status = ETHER_LINK_ESTABLISH_STATUS_DOWN;
-
-            /* If a callback is provided, then call it with callback argument. */
-            if (NULL != p_instance_ctrl->p_callback)
-            {
-                callback_arg.channel     = p_instance_ctrl->p_ether_cfg->channel;
-                callback_arg.event       = ETHER_EVENT_LINK_OFF;
-                callback_arg.status_ecsr = 0;
-                callback_arg.status_eesr = 0;
-                callback_arg.p_context   = p_instance_ctrl->p_ether_cfg->p_context;
-                ether_call_callback(p_instance_ctrl, &callback_arg);
-            }
-        }
-        else
-        {
-            ;                          /* no operation */
-        }
-
-#elif (ETHER_CFG_USE_LINKSTA == 0)
         p_reg_etherc = (R_ETHERC0_Type *) p_instance_ctrl->p_reg_etherc;
 
         /* Disable receive and transmit. */
@@ -839,6 +786,13 @@ fsp_err_t R_ETHER_LinkProcess (ether_ctrl_t * const p_ctrl)
             callback_arg.p_context   = p_instance_ctrl->p_ether_cfg->p_context;
             ether_call_callback(p_instance_ctrl, &callback_arg);
         }
+
+#if (ETHER_CFG_USE_LINKSTA == 1)
+    }
+    else
+    {
+        ;                              /* no operation */
+    }
 #endif
     }
     else
@@ -861,7 +815,7 @@ fsp_err_t R_ETHER_LinkProcess (ether_ctrl_t * const p_ctrl)
  ***********************************************************************************************************************/
 fsp_err_t R_ETHER_WakeOnLANEnable (ether_ctrl_t * const p_ctrl)
 {
-    fsp_err_t               err             = FSP_SUCCESS;
+    fsp_err_t err = FSP_SUCCESS;
     ether_instance_ctrl_t * p_instance_ctrl = (ether_instance_ctrl_t *) p_ctrl;
 
 #if (ETHER_CFG_USE_LINKSTA == 1)
@@ -931,11 +885,11 @@ fsp_err_t R_ETHER_WakeOnLANEnable (ether_ctrl_t * const p_ctrl)
  ***********************************************************************************************************************/
 fsp_err_t R_ETHER_Read (ether_ctrl_t * const p_ctrl, void * const p_buffer, uint32_t * const length_bytes)
 {
-    fsp_err_t               err             = FSP_SUCCESS;
+    fsp_err_t err = FSP_SUCCESS;
     ether_instance_ctrl_t * p_instance_ctrl = (ether_instance_ctrl_t *) p_ctrl;
-    uint8_t               * p_read_buffer   = NULL; /* Buffer location controlled by the Ethernet driver */
-    uint32_t                received_size   = ETHER_NO_DATA;
-    uint8_t              ** pp_read_buffer  = (uint8_t **) p_buffer;
+    uint8_t * p_read_buffer                 = NULL; /* Buffer location controlled by the Ethernet driver */
+    uint32_t received_size    = ETHER_NO_DATA;
+    uint8_t ** pp_read_buffer = (uint8_t **) p_buffer;
 
     /* Check argument */
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
@@ -1056,12 +1010,12 @@ fsp_err_t R_ETHER_Read (ether_ctrl_t * const p_ctrl, void * const p_buffer, uint
  ***********************************************************************************************************************/
 fsp_err_t R_ETHER_Write (ether_ctrl_t * const p_ctrl, void * const p_buffer, uint32_t const frame_length)
 {
-    fsp_err_t               err             = FSP_SUCCESS;
+    fsp_err_t err = FSP_SUCCESS;
     ether_instance_ctrl_t * p_instance_ctrl = (ether_instance_ctrl_t *) p_ctrl;
-    R_ETHERC_EDMAC_Type   * p_reg_edmac;
+    R_ETHERC_EDMAC_Type * p_reg_edmac;
 
     uint8_t * p_write_buffer;
-    uint32_t  write_buffer_size;
+    uint32_t write_buffer_size;
 
     /* Check argument */
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
@@ -1142,12 +1096,12 @@ fsp_err_t R_ETHER_Write (ether_ctrl_t * const p_ctrl, void * const p_buffer, uin
  ***********************************************************************************************************************/
 fsp_err_t R_ETHER_TxStatusGet (ether_ctrl_t * const p_ctrl, void * const p_buffer_address)
 {
-    ether_instance_ctrl_t       * p_instance_ctrl = (ether_instance_ctrl_t *) p_ctrl;
-    ether_extended_cfg_t        * p_ether_extended_cfg;
-    R_ETHERC_EDMAC_Type         * p_reg_edmac;
+    ether_instance_ctrl_t * p_instance_ctrl = (ether_instance_ctrl_t *) p_ctrl;
+    ether_extended_cfg_t * p_ether_extended_cfg;
+    R_ETHERC_EDMAC_Type * p_reg_edmac;
     ether_instance_descriptor_t * p_descriptor;
     uint8_t ** p_sent_buffer_address = (uint8_t **) p_buffer_address;
-    fsp_err_t  err = FSP_ERR_NOT_FOUND;
+    fsp_err_t err = FSP_ERR_NOT_FOUND;
 
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
     FSP_ASSERT(p_instance_ctrl);
@@ -1256,7 +1210,6 @@ fsp_err_t R_ETHER_CallbackSet (ether_ctrl_t * const          p_api_ctrl,
  *
  * @retval  FSP_SUCCESS                  No parameter error found
  * @retval  FSP_ERR_ASSERTION            Pointer to ETHER control block or configuration structure is NULL
- * @retval  FSP_ERR_ALREADY_OPEN         Control block has already been opened
  * @retval  FSP_ERR_INVALID_CHANNEL      Invalid channel number is given.
  * @retval  FSP_ERR_INVALID_POINTER      Pointer to MAC address is NULL.
  * @retval  FSP_ERR_INVALID_ARGUMENT     Irq number lower then 0.
@@ -1281,8 +1234,6 @@ static fsp_err_t ether_open_param_check (ether_instance_ctrl_t const * const p_i
     {
         ETHER_ERROR_RETURN((p_cfg->pp_ether_buffers != NULL), FSP_ERR_INVALID_ARGUMENT);
     }
-
-    ETHER_ERROR_RETURN((ETHER_OPEN != p_instance_ctrl->open), FSP_ERR_ALREADY_OPEN);
 
     return FSP_SUCCESS;
 }
@@ -1318,7 +1269,7 @@ static void ether_reset_mac (R_ETHERC_EDMAC_Type * const p_reg)
 static void ether_init_descriptors (ether_instance_ctrl_t * const p_instance_ctrl)
 {
     ether_instance_descriptor_t * p_descriptor = NULL;
-    uint32_t               i;
+    uint32_t i;
     ether_extended_cfg_t * p_ether_extended_cfg = (ether_extended_cfg_t *) p_instance_ctrl->p_ether_cfg->p_extend;
 
     /* Initialize the receive descriptors */
@@ -1464,7 +1415,7 @@ static fsp_err_t ether_buffer_get (ether_instance_ctrl_t * const p_instance_ctrl
  ***********************************************************************************************************************/
 static void ether_config_ethernet (ether_instance_ctrl_t const * const p_instance_ctrl, const uint8_t mode)
 {
-    R_ETHERC0_Type      * p_reg_etherc;
+    R_ETHERC0_Type * p_reg_etherc;
     R_ETHERC_EDMAC_Type * p_reg_edmac;
 
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
@@ -1615,8 +1566,8 @@ static void ether_configure_mac (ether_instance_ctrl_t * const p_instance_ctrl,
                                  const uint8_t                 mode)
 {
     R_ETHERC0_Type * p_reg_etherc;
-    uint32_t         mac_h;
-    uint32_t         mac_l;
+    uint32_t mac_h;
+    uint32_t mac_l;
 
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
 
@@ -1668,16 +1619,16 @@ static void ether_configure_mac (ether_instance_ctrl_t * const p_instance_ctrl,
  ***********************************************************************************************************************/
 static fsp_err_t ether_do_link (ether_instance_ctrl_t * const p_instance_ctrl, const uint8_t mode)
 {
-    fsp_err_t             err;
-    R_ETHERC0_Type      * p_reg_etherc;
+    fsp_err_t err;
+    R_ETHERC0_Type * p_reg_etherc;
     R_ETHERC_EDMAC_Type * p_reg_edmac;
 
-    uint32_t  link_speed_duplex  = 0;
-    uint32_t  local_pause_bits   = 0;
-    uint32_t  partner_pause_bits = 0;
-    uint32_t  transmit_pause_set = 0;
-    uint32_t  receive_pause_set  = 0;
-    uint32_t  full_duplex        = 0;
+    uint32_t link_speed_duplex  = 0;
+    uint32_t local_pause_bits   = 0;
+    uint32_t partner_pause_bits = 0;
+    uint32_t transmit_pause_set = 0;
+    uint32_t receive_pause_set  = 0;
+    uint32_t full_duplex        = 0;
     fsp_err_t link_result;
 
 #if (ETHER_CFG_PARAM_CHECKING_ENABLE)
@@ -1844,7 +1795,7 @@ static fsp_err_t ether_do_link (ether_instance_ctrl_t * const p_instance_ctrl, c
 static uint8_t ether_check_magic_packet_detection_bit (ether_instance_ctrl_t const * const p_instance_ctrl)
 {
     R_ETHERC0_Type * p_reg_etherc = (R_ETHERC0_Type *) p_instance_ctrl->p_reg_etherc;
-    uint8_t          ret          = 0;
+    uint8_t ret = 0;
 
     /* The MPDE bit can be referred to only when ETHERC operates. */
     if ((1 == p_reg_etherc->ECMR_b.MPDE))
@@ -1963,10 +1914,10 @@ void ether_eint_isr (void)
     uint32_t status_eesr;
 
     ether_callback_args_t callback_arg;
-    R_ETHERC0_Type      * p_reg_etherc;
+    R_ETHERC0_Type * p_reg_etherc;
     R_ETHERC_EDMAC_Type * p_reg_edmac;
 
-    IRQn_Type               irq             = R_FSP_CurrentIrqGet();
+    IRQn_Type irq = R_FSP_CurrentIrqGet();
     ether_instance_ctrl_t * p_instance_ctrl = (ether_instance_ctrl_t *) R_FSP_IsrContextGet(irq);
 
     p_reg_etherc = (R_ETHERC0_Type *) p_instance_ctrl->p_reg_etherc;

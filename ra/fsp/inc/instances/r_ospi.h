@@ -145,6 +145,7 @@ typedef struct st_ospi_extended_cfg
     ospi_opi_command_set_t const * p_opi_commands;                          ///< If OPI commands are not used set this to NULL
     uint8_t                        opi_mem_read_dummy_cycles;               ///< Dummy cycles to be inserted for memory mapped reads
     uint8_t                        opi_mem_write_dummy_cycles;              ///< Dummy cycles to be inserted for memory mapped writes
+    uint8_t                        opi_status_read_dummy_cycles;            ///< Dummy cycles to be inserted for status reads in OPI mode.
     uint8_t                      * p_autocalibration_preamble_pattern_addr; ///< OctaFlash memory address holding the preamble pattern
     ospi_dopi_byte_order_t         dopi_byte_order;                         ///< Byte order on external bus. Only applicable in DOPI mode.
     uint16_t                       ram_chip_select_max_period_setting;      ///< Indicates the maximum period that OM_CS0/OM_CS1 are Low in single continuous write/read of OctaRAM.
@@ -172,27 +173,27 @@ extern const spi_flash_api_t g_ospi_on_spi_flash;
 
 /** @endcond */
 
-fsp_err_t R_OSPI_Open(spi_flash_ctrl_t * p_ctrl, spi_flash_cfg_t const * const p_cfg);
-fsp_err_t R_OSPI_Close(spi_flash_ctrl_t * p_ctrl);
-fsp_err_t R_OSPI_DirectWrite(spi_flash_ctrl_t    * p_ctrl,
-                             uint8_t const * const p_src,
-                             uint32_t const        bytes,
-                             bool const            read_after_write);
-fsp_err_t R_OSPI_DirectRead(spi_flash_ctrl_t * p_ctrl, uint8_t * const p_dest, uint32_t const bytes);
-fsp_err_t R_OSPI_DirectTransfer(spi_flash_ctrl_t                  * p_ctrl,
+fsp_err_t R_OSPI_Open(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * const p_cfg);
+fsp_err_t R_OSPI_Close(spi_flash_ctrl_t * const p_ctrl);
+fsp_err_t R_OSPI_DirectWrite(spi_flash_ctrl_t * const p_ctrl,
+                             uint8_t const * const    p_src,
+                             uint32_t const           bytes,
+                             bool const               read_after_write);
+fsp_err_t R_OSPI_DirectRead(spi_flash_ctrl_t * const p_ctrl, uint8_t * const p_dest, uint32_t const bytes);
+fsp_err_t R_OSPI_DirectTransfer(spi_flash_ctrl_t * const            p_ctrl,
                                 spi_flash_direct_transfer_t * const p_transfer,
                                 spi_flash_direct_transfer_dir_t     direction);
-fsp_err_t R_OSPI_SpiProtocolSet(spi_flash_ctrl_t * p_ctrl, spi_flash_protocol_t spi_protocol);
-fsp_err_t R_OSPI_XipEnter(spi_flash_ctrl_t * p_ctrl);
-fsp_err_t R_OSPI_XipExit(spi_flash_ctrl_t * p_ctrl);
-fsp_err_t R_OSPI_Write(spi_flash_ctrl_t    * p_ctrl,
-                       uint8_t const * const p_src,
-                       uint8_t * const       p_dest,
-                       uint32_t              byte_count);
-fsp_err_t R_OSPI_Erase(spi_flash_ctrl_t * p_ctrl, uint8_t * const p_device_address, uint32_t byte_count);
-fsp_err_t R_OSPI_StatusGet(spi_flash_ctrl_t * p_ctrl, spi_flash_status_t * const p_status);
-fsp_err_t R_OSPI_BankSet(spi_flash_ctrl_t * p_ctrl, uint32_t bank);
-fsp_err_t R_OSPI_AutoCalibrate(spi_flash_ctrl_t * p_ctrl);
+fsp_err_t R_OSPI_SpiProtocolSet(spi_flash_ctrl_t * const p_ctrl, spi_flash_protocol_t spi_protocol);
+fsp_err_t R_OSPI_XipEnter(spi_flash_ctrl_t * const p_ctrl);
+fsp_err_t R_OSPI_XipExit(spi_flash_ctrl_t * const p_ctrl);
+fsp_err_t R_OSPI_Write(spi_flash_ctrl_t * const p_ctrl,
+                       uint8_t const * const    p_src,
+                       uint8_t * const          p_dest,
+                       uint32_t                 byte_count);
+fsp_err_t R_OSPI_Erase(spi_flash_ctrl_t * const p_ctrl, uint8_t * const p_device_address, uint32_t byte_count);
+fsp_err_t R_OSPI_StatusGet(spi_flash_ctrl_t * const p_ctrl, spi_flash_status_t * const p_status);
+fsp_err_t R_OSPI_BankSet(spi_flash_ctrl_t * const p_ctrl, uint32_t bank);
+fsp_err_t R_OSPI_AutoCalibrate(spi_flash_ctrl_t * const p_ctrl);
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */
 FSP_FOOTER

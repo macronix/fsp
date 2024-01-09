@@ -10,43 +10,56 @@ FSP uses an open software ecosystem and provides flexibility in using your prefe
 
 ### Current Release
 
-[FSP v4.4.0](https://github.com/renesas/fsp/releases/tag/v4.4.0)
+[FSP v5.1.0](https://github.com/renesas/fsp/releases/tag/v5.1.0)
 
 ### Supported RA MCU Kits
 
+- CK-RA6M5
+- CK-RA6M5 V2
+- FPB-RA2E1
+- FPB-RA2E2
+- FPB-RA2E3
+- FPB-RA4E1
+- FPB-RA4E2
+- FPB-RA6E1
+- FPB-RA6E2
 - EK-RA2A1
 - EK-RA2E1
 - EK-RA2E2
 - EK-RA2L1
+- EK-RA4E2
 - EK-RA4M1
 - EK-RA4M2
 - EK-RA4M3
 - EK-RA4W1
+- EK-RA6E2
 - EK-RA6M1
 - EK-RA6M2
 - EK-RA6M3
 - EK-RA6M3G
 - EK-RA6M4
-- CK-RA6M5
 - EK-RA6M5
-- FPB-RA2E1
-- FPB-RA2E2
-- FPB-RA4E1
-- FPB-RA6E1
+- EK-RA8D1
+- EK-RA8M1
+- MCK-RA4T1
 - MCK-RA6T2
+- MCK-RA6T3
+- MCK-RA8T1
 - RSSK-RA2L1
 - RSSK-RA6T1
-- FPB-RA4E2
-- FPB-RA6E2
-- EK-RA4E2
-- EK-RA6E2
-- MCK-RA4T1
-- MCK-RA6T3
 
 
 ### Supported Software Packaged with FSP
 
 For a list of software modules packaged with FSP, see [Supported Software](SUPPORTED_SOFTWARE.md).
+
+#### Important Notice Regarding Azure RTOS
+
+On November 21, 2023, Microsoft announced that they have decided to contribute Azure RTOS to open source under the stewardship of the Eclipse foundation and Azure RTOS will become Eclipse ThreadX. For detailed information, please refer to the announcement at [Microsoft Contributes Azure RTOS to Open Source](https://techcommunity.microsoft.com/t5/internet-of-things-blog/microsoft-contributes-azure-rtos-to-open-source/ba-p/3986318).
+
+The support strategy scheme for Eclipse ThreadX will be determined and communicated at a later date. Microsoft will discontinue the Azure RTOS and Azure RTOS Middleware under the existing agreement [LICENSED-HARDWARE.txt](https://github.com/azure-rtos/threadx/blob/master/LICENSED-HARDWARE.txt).
+
+It is important to note that updates for Azure RTOS on these hardware will no longer be provided.
 
 ### Product Security Advisories
 
@@ -73,6 +86,8 @@ For a list of software modules packaged with FSP, see [Supported Software](SUPPO
 - FSP versions of 4.1.0 and later require a minimum e² studio version of 2022-10.
 - FSP versions of 4.3.0 and later require a minimum e² studio version of 2023-01.
 - FSP versions of 4.4.0 and later require a minimum e² studio version of 2023-04.
+- FSP versions of 4.6.0 and later require a minimum e² studio version of 2023-07.
+- FSP versions of 5.0.0 and later require a minimum e² studio version of 2023-10.
 
 If you have already installed a previous FSP release that included e² studio then you can download the packs separately. These are available for download under the Assets section for each release. There is a zipped version, FSP_Packs_\<version\>.zip, that will work on any supported OS. There is also a self-extracting installer version, FSP_Packs_\<version\>.exe, that will work on Windows.
 
@@ -80,7 +95,7 @@ When using the zipped version of the packs the zip file should be extracted into
 
 #### For new users that are using FSP with e² studio
 
-1.	Download the FSP with e² studio Installer from the Assets section of the [current release](https://github.com/renesas/fsp/releases/tag/v4.4.0).
+1.	Download the FSP with e² studio Installer from the Assets section of the [current release](https://github.com/renesas/fsp/releases/tag/v5.1.0).
 2.	Run the installer. This will install the e² studio tool, FSP packs, GCC toolchain and other tools required to use this software. No additional installations are required.
 
 #### If using RA Smart Configurator (RASC) with IAR Embedded Workbench or Keil MDK ####

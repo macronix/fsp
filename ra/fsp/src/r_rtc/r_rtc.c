@@ -79,6 +79,15 @@
 #define RTC_RFRL_MIN_VALUE_LOCO           (0x7U)
 #define RTC_RFRL_MAX_VALUE_LOCO           (0x1FFU)
 
+#define RTC_ALARM_REG_SIZE                (0x20)
+
+#define BSP_DELAY_US_PER_SECOND           (1000000)
+#define NOISE_FILTER_SET_NUMBER_DELAY     (3)
+#define NOISE_FILTER_CLOCK_DEVIDE_1       (1)
+#define NOISE_FILTER_CLOCK_DEVIDE_32      (32)
+#define NOISE_FILTER_CLOCK_DEVIDE_4096    (4096)
+#define NOISE_FILTER_CLOCK_DEVIDE_8192    (8192)
+
 /***********************************************************************************************************************
  * Typedef definitions
  **********************************************************************************************************************/
@@ -119,6 +128,8 @@ const rtc_api_t g_rtc_on_rtc =
     .infoGet            = R_RTC_InfoGet,
     .errorAdjustmentSet = R_RTC_ErrorAdjustmentSet,
     .callbackSet        = R_RTC_CallbackSet,
+    .timeCaptureSet     = R_RTC_TimeCaptureSet,
+    .timeCaptureGet     = R_RTC_TimeCaptureGet,
 };
 
 #if RTC_CFG_PARAM_CHECKING_ENABLE
@@ -182,9 +193,9 @@ static void r_rtc_error_adjustment_set(rtc_error_adjustment_cfg_t const * const 
  * Example:
  * @snippet r_rtc_example.c R_RTC_Open
  *
- * @retval FSP_SUCCESS          Initialization was successful and RTC has started.
- * @retval FSP_ERR_ASSERTION    Invalid p_ctrl or p_cfg pointer.
- * @retval FSP_ERR_ALREADY_OPEN Module is already open.
+ * @retval FSP_SUCCESS              Initialization was successful and RTC has started.
+ * @retval FSP_ERR_ASSERTION        Invalid p_ctrl or p_cfg pointer.
+ * @retval FSP_ERR_ALREADY_OPEN     Module is already open.
  * @retval FSP_ERR_INVALID_ARGUMENT Invalid time parameter field.
  **********************************************************************************************************************/
 fsp_err_t R_RTC_Open (rtc_ctrl_t * const p_ctrl, rtc_cfg_t const * const p_cfg)
@@ -208,10 +219,15 @@ fsp_err_t R_RTC_Open (rtc_ctrl_t * const p_ctrl, rtc_cfg_t const * const p_cfg)
 
 #if RTC_CFG_PARAM_CHECKING_ENABLE
 
+    /* IRTC only use Subclock */
+ #if BSP_FEATURE_RTC_IS_IRTC
+    FSP_ERROR_RETURN(RTC_CLOCK_SOURCE_SUBCLK == p_cfg->clock_source, FSP_ERR_INVALID_ARGUMENT);
+ #endif
+
     /* Verify the frequency comparison value for RFRL when using LOCO */
     if (RTC_CLOCK_SOURCE_LOCO == p_cfg->clock_source)
     {
-        FSP_ERROR_RETURN(FSP_SUCCESS != r_rtc_rfrl_validate(p_cfg->freq_compare_value_loco), FSP_ERR_INVALID_ARGUMENT);
+        FSP_ERROR_RETURN(FSP_SUCCESS != r_rtc_rfrl_validate(p_cfg->freq_compare_value), FSP_ERR_INVALID_ARGUMENT);
     }
     /* Validate the error adjustment parameters when using SubClock */
     else
@@ -260,6 +276,10 @@ fsp_err_t R_RTC_Close (rtc_ctrl_t * const p_ctrl)
     /* Clear PIE, AIE, CIE*/
     R_RTC->RCR1 = 0U;
 
+    /* When the RCR1 register is modified, check that all the bits are updated before proceeding
+     * (see section 26.2.17 "RTC Control Register 1 (RCR1)" of the RA6M3 manual R01UH0886EJ0100)*/
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RCR1, 0);
+
     /* Set the START bit to 0 */
     r_rtc_start_bit_update(0U);
 
@@ -275,6 +295,13 @@ fsp_err_t R_RTC_Close (rtc_ctrl_t * const p_ctrl)
         R_FSP_IsrContextSet(p_instance_ctrl->p_cfg->alarm_irq, NULL);
     }
 
+#if BSP_FEATURE_RTC_IS_IRTC
+    if (((rtc_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend)->alarm1_irq >= 0)
+    {
+        R_BSP_IrqDisable(((rtc_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend)->alarm1_irq);
+        R_FSP_IsrContextSet(((rtc_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend)->alarm1_irq, NULL);
+    }
+#endif
     if (p_instance_ctrl->p_cfg->carry_irq >= 0)
     {
         R_BSP_IrqDisable(p_instance_ctrl->p_cfg->carry_irq);
@@ -292,9 +319,10 @@ fsp_err_t R_RTC_Close (rtc_ctrl_t * const p_ctrl)
  * Example:
  * @snippet r_rtc_example.c R_RTC_ClockSourceSet
  *
- * @retval FSP_SUCCESS          Initialization was successful and RTC has started.
- * @retval FSP_ERR_ASSERTION    Invalid p_ctrl or p_cfg pointer.
- * @retval FSP_ERR_NOT_OPEN     Driver is not opened.
+ * @retval FSP_SUCCESS              Initialization was successful and RTC has started.
+ * @retval FSP_ERR_ASSERTION        Invalid p_ctrl or p_cfg pointer.
+ * @retval FSP_ERR_NOT_OPEN         Driver is not opened.
+ * @retval FSP_ERR_INVALID_ARGUMENT Invalid clock source.
  **********************************************************************************************************************/
 fsp_err_t R_RTC_ClockSourceSet (rtc_ctrl_t * const p_ctrl)
 {
@@ -304,6 +332,9 @@ fsp_err_t R_RTC_ClockSourceSet (rtc_ctrl_t * const p_ctrl)
 #if RTC_CFG_PARAM_CHECKING_ENABLE
     FSP_ASSERT(NULL != p_instance_ctrl);
     FSP_ERROR_RETURN(RTC_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+ #if BSP_FEATURE_RTC_IS_IRTC
+    FSP_ERROR_RETURN(RTC_CLOCK_SOURCE_SUBCLK == p_instance_ctrl->p_cfg->clock_source, FSP_ERR_INVALID_ARGUMENT);
+ #endif
 #endif
 
     /* Set the clock source for RTC.
@@ -378,9 +409,9 @@ fsp_err_t R_RTC_CalendarTimeSet (rtc_ctrl_t * const p_ctrl, rtc_time_t * const p
  *
  * Implements @ref rtc_api_t::calendarTimeGet
  *
- * @retval FSP_SUCCESS          Calendar time get operation was successful.
- * @retval FSP_ERR_ASSERTION    Invalid input argument.
- * @retval FSP_ERR_NOT_OPEN     Driver not open already for operation.
+ * @retval FSP_SUCCESS              Calendar time get operation was successful.
+ * @retval FSP_ERR_ASSERTION        Invalid input argument.
+ * @retval FSP_ERR_NOT_OPEN         Driver not open already for operation.
  * @retval FSP_ERR_IRQ_BSP_DISABLED User IRQ parameter not valid
  **********************************************************************************************************************/
 fsp_err_t R_RTC_CalendarTimeGet (rtc_ctrl_t * const p_ctrl, rtc_time_t * const p_time)
@@ -451,23 +482,40 @@ fsp_err_t R_RTC_CalendarTimeGet (rtc_ctrl_t * const p_ctrl, rtc_time_t * const p
 fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * const p_alarm)
 {
     rtc_instance_ctrl_t * p_instance_ctrl = (rtc_instance_ctrl_t *) p_ctrl;
-    fsp_err_t             err             = FSP_SUCCESS;
 
 #if RTC_CFG_PARAM_CHECKING_ENABLE
     FSP_ASSERT(NULL != p_instance_ctrl);
-    FSP_ASSERT(p_alarm);
+    FSP_ASSERT(NULL != p_alarm);
     FSP_ERROR_RETURN(RTC_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+ #if BSP_FEATURE_RTC_IS_IRTC
+    FSP_ERROR_RETURN((p_alarm->channel == RTC_ALARM_CHANNEL_0 && p_instance_ctrl->p_cfg->alarm_irq >= 0) ||
+                     (p_alarm->channel == RTC_ALARM_CHANNEL_1 &&
+                      ((rtc_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend)->alarm1_irq >= 0),
+                     FSP_ERR_IRQ_BSP_DISABLED);
+ #else
     FSP_ERROR_RETURN(p_instance_ctrl->p_cfg->alarm_irq >= 0, FSP_ERR_IRQ_BSP_DISABLED);
+ #endif
 
     /* Verify the seconds, minutes, hours, year ,day of the week, day of the month and month are valid values */
     FSP_ERROR_RETURN(FSP_SUCCESS == r_rtc_alarm_time_and_date_validate(p_alarm), FSP_ERR_INVALID_ARGUMENT);
 #endif
 
-    if (p_instance_ctrl->p_cfg->alarm_irq >= 0)
+    volatile uint8_t  * p_reg;
+    volatile uint16_t * p_reg_ryrar;
+
+    IRQn_Type           alarm_irq     = p_instance_ctrl->p_cfg->alarm_irq;
+    rtc_alarm_channel_t alarm_channel = RTC_ALARM_CHANNEL_0;
+
+#if BSP_FEATURE_RTC_IS_IRTC
+    alarm_channel = p_alarm->channel;
+    if (RTC_ALARM_CHANNEL_1 == alarm_channel)
     {
-        /* Disable the ICU alarm interrupt request */
-        R_BSP_IrqDisable(p_instance_ctrl->p_cfg->alarm_irq);
+        alarm_irq = ((rtc_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend)->alarm1_irq;
     }
+#endif
+
+    /* Disable the ICU alarm interrupt request */
+    R_BSP_IrqDisable(alarm_irq);
 
     /* Set alarm time */
     volatile uint8_t field;
@@ -480,7 +528,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RSECAR = field;
+    p_reg  = &R_RTC->RSECAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    *p_reg = field;
 
     if (p_alarm->min_match)
     {
@@ -491,7 +540,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RMINAR = field;
+    p_reg    = &R_RTC->RMINAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = field;
 
     if (p_alarm->hour_match)
     {
@@ -503,7 +553,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RHRAR = field;
+    p_reg    = &R_RTC->RHRAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = field;
 
     if (p_alarm->dayofweek_match)
     {
@@ -514,7 +565,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RWKAR = field;
+    p_reg    = &R_RTC->RWKAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = field;
 
     if (p_alarm->mday_match)
     {
@@ -526,7 +578,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 1U;
     }
 
-    R_RTC->RDAYAR = field;
+    p_reg    = &R_RTC->RDAYAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = field;
 
     if (p_alarm->mon_match)
     {
@@ -539,7 +592,8 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RMONAR = field;
+    p_reg    = &R_RTC->RMONAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = field;
 
     if (p_alarm->year_match)
     {
@@ -550,15 +604,19 @@ fsp_err_t R_RTC_CalendarAlarmSet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
         field = 0U;
     }
 
-    R_RTC->RYRAR         = field;
-    R_RTC->RYRAREN_b.ENB = (p_alarm->year_match);
+    /*It is a pointer to uint16_t so the offset needs to be halved */
+    p_reg_ryrar    = &R_RTC->RYRAR + (RTC_ALARM_REG_SIZE * alarm_channel) / 2;
+    (*p_reg_ryrar) = field;
+
+    p_reg    = &R_RTC->RYRAREN + (RTC_ALARM_REG_SIZE * alarm_channel);
+    (*p_reg) = (uint8_t) (p_alarm->year_match << R_RTC_RYRAREN_ENB_Pos);
 
     /* Enable the alarm interrupt */
     r_rtc_irq_set(true, R_RTC_RCR1_AIE_Msk);
 
-    R_BSP_IrqEnable(p_instance_ctrl->p_cfg->alarm_irq);
+    R_BSP_IrqEnable(alarm_irq);
 
-    return err;
+    return FSP_SUCCESS;
 }
 
 /*******************************************************************************************************************//**
@@ -581,25 +639,58 @@ fsp_err_t R_RTC_CalendarAlarmGet (rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * 
     FSP_PARAMETER_NOT_USED(p_ctrl);
 #endif
 
-    p_alarm->time.tm_sec  = rtc_bcd_to_dec(R_RTC->RSECAR & RTC_MASK_8TH_BIT);
-    p_alarm->time.tm_min  = rtc_bcd_to_dec(R_RTC->RMINAR & RTC_MASK_8TH_BIT);
-    p_alarm->time.tm_hour = rtc_bcd_to_dec(R_RTC->RHRAR & RTC_MASK_8TH_BIT);
-    p_alarm->time.tm_wday = rtc_bcd_to_dec(R_RTC->RWKAR & RTC_MASK_8TH_BIT);
-    p_alarm->time.tm_mday = rtc_bcd_to_dec(R_RTC->RDAYAR & RTC_MASK_8TH_BIT);
+    volatile uint8_t  * p_reg;
+    volatile uint16_t * p_reg_ryrar;
+    uint8_t             reg_val;
+    uint16_t            reg_ryrar_val;
+
+    rtc_alarm_channel_t alarm_channel = RTC_ALARM_CHANNEL_0;
+
+#if BSP_FEATURE_RTC_IS_IRTC
+    alarm_channel = p_alarm->channel;
+#endif
+
+    p_reg                = &R_RTC->RSECAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val              = *p_reg;
+    p_alarm->time.tm_sec = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT);
+    p_alarm->sec_match   = (bool) (reg_val & R_RTC_RSECAR_ENB_Msk);
+
+    p_reg                = &R_RTC->RMINAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val              = *p_reg;
+    p_alarm->time.tm_min = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT);
+    p_alarm->min_match   = (bool) (reg_val & R_RTC_RMINAR_ENB_Msk);
+
+    p_reg                 = &R_RTC->RHRAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val               = *p_reg;
+    p_alarm->time.tm_hour = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT);
+    p_alarm->hour_match   = (bool) (reg_val & R_RTC_RHRAR_ENB_Msk);
+
+    p_reg                    = &R_RTC->RWKAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val                  = *p_reg;
+    p_alarm->time.tm_wday    = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT);
+    p_alarm->dayofweek_match = (bool) (reg_val & R_RTC_RWKAR_ENB_Msk);
+
+    p_reg                 = &R_RTC->RDAYAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val               = *p_reg;
+    p_alarm->time.tm_mday = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT);
+    p_alarm->mday_match   = (bool) (reg_val & R_RTC_RDAYAR_ENB_Msk);
 
     /* Subtract one from month to match with C time.h standards */
-    p_alarm->time.tm_mon = rtc_bcd_to_dec(R_RTC->RMONAR & RTC_MASK_8TH_BIT) - (uint8_t) 1;
+    p_reg                = &R_RTC->RMONAR + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val              = *p_reg;
+    p_alarm->time.tm_mon = rtc_bcd_to_dec(reg_val & RTC_MASK_8TH_BIT) - (uint8_t) 1;
+    p_alarm->mon_match   = (bool) (reg_val & R_RTC_RMONAR_ENB_Msk);
+
+    /*It is a pointer to uint16_t so the offset needs to be halved */
+    p_reg_ryrar   = &R_RTC->RYRAR + (RTC_ALARM_REG_SIZE * alarm_channel) / 2;
+    reg_ryrar_val = *p_reg_ryrar;
 
     /* Add 100 to the year to match with C time.h standards */
-    p_alarm->time.tm_year = rtc_bcd_to_dec((uint8_t) R_RTC->RYRAR) + (uint8_t) RTC_C_TIME_OFFSET;
+    p_alarm->time.tm_year = rtc_bcd_to_dec((uint8_t) reg_ryrar_val) + (uint8_t) RTC_C_TIME_OFFSET;
 
-    p_alarm->sec_match       = (bool) R_RTC->RSECAR_b.ENB;
-    p_alarm->min_match       = (bool) R_RTC->RMINAR_b.ENB;
-    p_alarm->hour_match      = (bool) R_RTC->RHRAR_b.ENB;
-    p_alarm->dayofweek_match = (bool) R_RTC->RWKAR_b.ENB;
-    p_alarm->mday_match      = (bool) R_RTC->RDAYAR_b.ENB;
-    p_alarm->mon_match       = (bool) R_RTC->RMONAR_b.ENB;
-    p_alarm->year_match      = (bool) R_RTC->RYRAREN_b.ENB;
+    p_reg               = &R_RTC->RYRAREN + (RTC_ALARM_REG_SIZE * alarm_channel);
+    reg_val             = *p_reg;
+    p_alarm->year_match = (bool) (reg_val & R_RTC_RYRAREN_ENB_Msk);
 
     return FSP_SUCCESS;
 }
@@ -758,6 +849,173 @@ fsp_err_t R_RTC_CallbackSet (rtc_ctrl_t * const          p_ctrl,
 }
 
 /*******************************************************************************************************************//**
+ * Set time capture configuration for the provided channel.
+ *
+ * Implements @ref rtc_api_t::timeCaptureSet
+ *
+ * @note Updating capture settings requires significant software delay. Timing considerations should be carefully
+ * considered when calling this function.
+ *
+ * @retval FSP_SUCCESS                 Setting for Time capture was successful.
+ * @retval FSP_ERR_ASSERTION           Invalid input argument.
+ * @retval FSP_ERR_NOT_OPEN            Driver not open already for operation.
+ * @retval FSP_ERR_INVALID_CHANNEL     Invalid input channel set.
+ * @retval FSP_ERR_UNSUPPORTED         Hardware not support this feature.
+ **********************************************************************************************************************/
+fsp_err_t R_RTC_TimeCaptureSet (rtc_ctrl_t * const p_ctrl, rtc_time_capture_t * const p_time_capture)
+{
+#if BSP_FEATURE_RTC_IS_IRTC && BSP_FEATURE_RTC_HAS_TCEN
+ #if (RTC_CFG_PARAM_CHECKING_ENABLE)
+    rtc_instance_ctrl_t * p_instance_ctrl = (rtc_instance_ctrl_t *) p_ctrl;
+    FSP_ASSERT(NULL != p_instance_ctrl);
+    FSP_ASSERT(NULL != p_time_capture);
+    FSP_ERROR_RETURN(RTC_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+    FSP_ERROR_RETURN(BSP_FEATURE_RTC_RTCCR_CHANNELS > p_time_capture->channel, FSP_ERR_INVALID_CHANNEL);
+ #else
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+ #endif
+
+    /* Clear config, set TCEN bit before set other bit. */
+    R_RTC->RTCCR[p_time_capture->channel].RTCCR = R_RTC_RTCCR_RTCCR_TCEN_Msk;
+
+    /* When RTCCRn is modified, check that all the bits except the TCST bit are updated before continuing with
+     * additional processing. (see section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the
+     * manual R01UH1005EJ0100) */
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RTCCR[p_time_capture->channel].RTCCR, (uint8_t) R_RTC_RTCCR_RTCCR_TCEN_Msk);
+
+    R_RTC->RTCCR[p_time_capture->channel].RTCCR |=
+        (uint8_t) (p_time_capture->noise_filter << R_RTC_RTCCR_RTCCR_TCNF_Pos);
+
+    /* When the noise filter is used, set the TCNF[2:0] bits,wait for 3 cycles of the specified sampling period (see
+     * section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the  manual R01UH1005EJ0100) */
+    uint32_t noise_filter_delay_us = 0;
+    switch (p_time_capture->noise_filter)
+    {
+        case RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_32:
+        {
+            noise_filter_delay_us = BSP_DELAY_US_PER_SECOND * (NOISE_FILTER_CLOCK_DEVIDE_32 / BSP_SUBCLOCK_FREQ_HZ);
+            break;
+        }
+
+        case RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_4096:
+        {
+            noise_filter_delay_us = BSP_DELAY_US_PER_SECOND * (NOISE_FILTER_CLOCK_DEVIDE_4096 / BSP_SUBCLOCK_FREQ_HZ);
+            break;
+        }
+
+        case RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_8192:
+        {
+            noise_filter_delay_us = BSP_DELAY_US_PER_SECOND * (NOISE_FILTER_CLOCK_DEVIDE_8192 / BSP_SUBCLOCK_FREQ_HZ);
+            break;
+        }
+
+        default:
+        {
+            noise_filter_delay_us = BSP_DELAY_US_PER_SECOND * (NOISE_FILTER_CLOCK_DEVIDE_1 / BSP_SUBCLOCK_FREQ_HZ);
+            break;
+        }
+    }
+
+    R_BSP_SoftwareDelay(NOISE_FILTER_SET_NUMBER_DELAY * noise_filter_delay_us, BSP_DELAY_UNITS_MICROSECONDS);
+
+    /* When RTCCRn is modified, check that all the bits except the TCST bit are updated before continuing with
+     * additional processing. (see section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the
+     * manual R01UH1005EJ0100) */
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RTCCR[p_time_capture->channel].RTCCR_b.TCNF,
+                               (uint8_t) p_time_capture->noise_filter);
+
+    R_RTC->RTCCR[p_time_capture->channel].RTCCR |= (uint8_t) (p_time_capture->source << R_RTC_RTCCR_RTCCR_TCCT_Pos);
+
+    /* When RTCCRn is modified, check that all the bits except the TCST bit are updated before continuing with
+     * additional processing. (see section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the
+     * manual R01UH1005EJ0100) */
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RTCCR[p_time_capture->channel].RTCCR_b.TCCT, (uint8_t) p_time_capture->source);
+
+    return FSP_SUCCESS;
+#else
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+    FSP_PARAMETER_NOT_USED(p_time_capture);
+
+    return FSP_ERR_UNSUPPORTED;
+#endif
+}
+
+/*******************************************************************************************************************//**
+ * Get time capture value of the provided channel.
+ *
+ * Implements @ref rtc_api_t::timeCaptureGet
+ *
+ * @retval FSP_SUCCESS                 Get time capture successful.
+ * @retval FSP_ERR_ASSERTION           Invalid input argument.
+ * @retval FSP_ERR_NOT_OPEN            Driver not open already for operation.
+ * @retval FSP_ERR_INVALID_CHANNEL     Invalid input channel get.
+ * @retval FSP_ERR_INVALID_STATE       Invalid operation state.
+ * @retval FSP_ERR_UNSUPPORTED         Hardware not support this feature.
+ **********************************************************************************************************************/
+fsp_err_t R_RTC_TimeCaptureGet (rtc_ctrl_t * const p_ctrl, rtc_time_capture_t * const p_time_capture)
+{
+#if BSP_FEATURE_RTC_IS_IRTC && BSP_FEATURE_RTC_HAS_TCEN
+ #if (RTC_CFG_PARAM_CHECKING_ENABLE)
+    rtc_instance_ctrl_t * p_instance_ctrl = (rtc_instance_ctrl_t *) p_ctrl;
+    FSP_ASSERT(NULL != p_instance_ctrl);
+    FSP_ASSERT(NULL != p_time_capture);
+    FSP_ERROR_RETURN(RTC_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+    FSP_ERROR_RETURN(BSP_FEATURE_RTC_RTCCR_CHANNELS > p_time_capture->channel, FSP_ERR_INVALID_CHANNEL);
+ #else
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+ #endif
+
+    /* The event is detected only during count operation (RCR2.START bit = 1). Before reading the capture register,
+     * make sure that this bit is set to 1. */
+    FSP_ERROR_RETURN(R_RTC->RCR2_b.START == 1U, FSP_ERR_INVALID_STATE);
+
+    /* Capture event detected */
+    FSP_ERROR_RETURN(R_RTC->RTCCR[p_time_capture->channel].RTCCR_b.TCST == 1U, FSP_ERR_INVALID_STATE);
+
+    /* Get configuration of capture source and noise filter */
+    p_time_capture->source       = (rtc_time_capture_source_t) R_RTC->RTCCR[p_time_capture->channel].RTCCR_b.TCCT;
+    p_time_capture->noise_filter = (rtc_time_capture_noise_filter_t) R_RTC->RTCCR[p_time_capture->channel].RTCCR_b.TCNF;
+
+    /* Before reading from this register, the time capture event detection should be stopped using the RTCCRn.TCCT[1:0]
+     * bits.(see section 23.2.28 "RSECCPn : Second Capture Register n (n = 0 to 2) (in Calendar Count Mode)" of the
+     *  manual r01uh1005ej0100 */
+    uint8_t rtccr = R_RTC->RTCCR[p_time_capture->channel].RTCCR;
+    R_RTC->RTCCR[p_time_capture->channel].RTCCR = rtccr & ((uint8_t) ~R_RTC_RTCCR_RTCCR_TCCT_Msk);
+
+    /* When RTCCRn is modified, check that all the bits except the TCST bit are updated before continuing with
+     * additional processing. (see section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the
+     * manual R01UH1005EJ0100) */
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RTCCR[p_time_capture->channel].RTCCR,
+                               (uint8_t) (rtccr & ((uint8_t) ~R_RTC_RTCCR_RTCCR_TCCT_Msk)));
+
+    p_time_capture->time.tm_sec  = rtc_bcd_to_dec(R_RTC->CP[p_time_capture->channel].RSEC & RTC_MASK_8TH_BIT);
+    p_time_capture->time.tm_min  = rtc_bcd_to_dec(R_RTC->CP[p_time_capture->channel].RMIN & RTC_MASK_8TH_BIT);
+    p_time_capture->time.tm_hour = rtc_bcd_to_dec(R_RTC->CP[p_time_capture->channel].RHR & RTC_MASK_8TH_BIT);
+    p_time_capture->time.tm_mday = rtc_bcd_to_dec(R_RTC->CP[p_time_capture->channel].RDAY & RTC_MASK_8TH_BIT);
+
+    /* Subtract one from month to match with C time.h standards */
+    p_time_capture->time.tm_mon = rtc_bcd_to_dec(R_RTC->CP[p_time_capture->channel].RMON & RTC_MASK_8TH_BIT) -
+                                  (uint8_t) 1;
+
+    /* Restore setting and clear Time capture status bit */
+    R_RTC->RTCCR[p_time_capture->channel].RTCCR = rtccr & ((uint8_t) ~R_RTC_RTCCR_RTCCR_TCST_Msk);
+
+    /* When RTCCRn is modified, check that all the bits except the TCST bit are updated before continuing with
+     * additional processing. (see section 23.2.27 "RTCCRn : Time Capture Control Register n (n = 0 to 2)" of the
+     * manual R01UH1005EJ0100) */
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RTCCR[p_time_capture->channel].RTCCR,
+                               (uint8_t) (rtccr & ((uint8_t) ~R_RTC_RTCCR_RTCCR_TCST_Msk)));
+
+    return FSP_SUCCESS;
+#else
+    FSP_PARAMETER_NOT_USED(p_ctrl);
+    FSP_PARAMETER_NOT_USED(p_time_capture);
+
+    return FSP_ERR_UNSUPPORTED;
+#endif
+}
+
+/*******************************************************************************************************************//**
  * @} (end addtpgroup RTC)
  **********************************************************************************************************************/
 
@@ -817,7 +1075,7 @@ static void r_rtc_set_clock_source (rtc_instance_ctrl_t * const p_ctrl, rtc_cfg_
          * Frequency Register (RFRH/RFRL)" of the RA6M3 manual R01UH0886EJ0100) */
         R_RTC->RFRH = 0;
 
-        R_RTC->RFRL = (uint16_t) p_cfg->freq_compare_value_loco;
+        R_RTC->RFRL = (uint16_t) p_cfg->freq_compare_value;
     }
 
     R_RTC->RCR2 = 0;
@@ -831,6 +1089,10 @@ static void r_rtc_set_clock_source (rtc_instance_ctrl_t * const p_ctrl, rtc_cfg_
 
     /* Disable RTC interrupts */
     R_RTC->RCR1 = 0;
+
+    /* When the RCR1 register is modified, check that all the bits are updated before proceeding
+     * (see section 26.2.17 "RTC Control Register 1 (RCR1)" of the RA6M3 manual R01UH0886EJ0100)*/
+    FSP_HARDWARE_REGISTER_WAIT(R_RTC->RCR1, 0);
 
     /* Force RTC to 24 hour mode. Set HR24 bit in the RCR2 register */
     R_RTC->RCR2_b.HR24 = 1U;
@@ -869,6 +1131,14 @@ static void r_rtc_config_rtc_interrupts (rtc_instance_ctrl_t * const p_ctrl, rtc
         R_BSP_IrqCfg(p_cfg->alarm_irq, p_cfg->alarm_ipl, p_ctrl);
     }
 
+#if BSP_FEATURE_RTC_IS_IRTC
+    if (((rtc_extended_cfg_t *) p_cfg->p_extend)->alarm1_irq >= 0)
+    {
+        R_BSP_IrqCfg(((rtc_extended_cfg_t *) p_cfg->p_extend)->alarm1_irq,
+                     ((rtc_extended_cfg_t *) p_cfg->p_extend)->alarm1_ipl,
+                     p_ctrl);
+    }
+#endif
     if (p_cfg->carry_irq >= 0)
     {
         R_BSP_IrqCfg(p_cfg->carry_irq, p_cfg->carry_ipl, p_ctrl);
@@ -1366,6 +1636,13 @@ void rtc_alarm_periodic_isr (void)
         {
             event = RTC_EVENT_ALARM_IRQ;
         }
+
+#if BSP_FEATURE_RTC_IS_IRTC
+        else if (irq == ((rtc_extended_cfg_t *) p_ctrl->p_cfg->p_extend)->alarm1_irq)
+        {
+            event = RTC_EVENT_ALARM1_IRQ;
+        }
+#endif
         else
         {
             event = RTC_EVENT_PERIODIC_IRQ;
