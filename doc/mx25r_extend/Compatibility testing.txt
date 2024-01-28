@@ -1,3 +1,0 @@
-Compatibility testing
-This pack has been tested and can be used normally in the following FSP versions:
-	FSP5.0.0
